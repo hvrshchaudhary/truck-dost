@@ -8,11 +8,15 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 const apiRoutes = require('./routes/api');
+const authTruckDriver = require('./routes/authTruckDriver');
+const authManufacturer = require('./routes/authManufacturer');
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use('/api', apiRoutes);
+app.use('/api/truckDriver', authTruckDriver);
+app.use('/api/manufacturer', authManufacturer);
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI, {
