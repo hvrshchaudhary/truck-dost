@@ -1,82 +1,87 @@
-/* Reset default styling */
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f9f9f9;
-  }
-  
-  .container {
-    max-width: 600px;
-    margin: 50px auto;
-    background: #ffffff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-  }
-  
-  h1 {
-    text-align: center;
-    color: #333333;
-    font-size: 2rem;
-    margin-bottom: 20px;
-  }
-  
-  .form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  .form-group {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  label {
-    font-size: 0.9rem;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 5px;
-  }
-  
-  input {
-    padding: 10px;
-    font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    outline: none;
-    transition: border-color 0.3s ease;
-  }
-  
-  input:focus {
-    border-color: #007bff;
-  }
-  
-  .form-buttons {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-  }
-  
-  button {
-    font-size: 1rem;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
-  button.reset-btn {
-    background-color: #f44336;
-    color: #fff;
-  }
-  
-  button.reset-btn:hover {
-    background-color: #d32f2f;
-  }
-  
-  button.submit-btn {
-    background-color: #4caf
-  }  
+/* Container Styling */
+.container {
+  width: 50%;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #fdfdfd;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  font-family: Arial, sans-serif;
+}
+
+/* Title Styling */
+.form-title {
+  text-align: center;
+  color: #77216f;
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+}
+
+/* Form Styling */
+.styled-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Label Styling */
+label {
+  display: block;
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 5px;
+}
+
+/* Input Field Styling */
+input[type="text"],
+input[type="password"],
+input[type="date"] {
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #c4c4c4;
+  border-radius: 5px;
+  background-color: #fff;
+  transition: border-color 0.3s ease;
+}
+
+input:focus {
+  border-color: #77216f;
+  outline: none;
+}
+
+/* Buttons Styling */
+.form-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.reset-btn,
+.submit-btn {
+  width: 48%;
+  padding: 10px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.reset-btn {
+  background-color: #f4f4f4;
+  color: #333;
+}
+
+.reset-btn:hover {
+  background-color: #e4e4e4;
+}
+
+.submit-btn {
+  background-color: #77216f;
+  color: #fff;
+}
+
+.submit-btn:hover {
+  background-color: #5c1856;
+}
