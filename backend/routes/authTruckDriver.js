@@ -34,30 +34,27 @@ router.post(
             if (driver) {
                 return res.status(400).json({ errors: [{ msg: 'User already exists' }] });
             }
-            // If licensePlateNumber is provided, verify it
-            // if (licensePlateNumber) {
-            //     const options = {
-            //       method: 'POST',
-            //       url: 'https://api.attestr.com/api/v2/public/checkx/rc',
-            //       headers: {
-            //         'Content-Type': 'application/json',
-            //         'Authorization': `Basic ${process.env.ATTESTR_AUTH_TOKEN}`,
-            //       },
-            //       data: {
-            //         reg: licensePlateNumber,
-            //       },
-            //     };
-              
-            //     const response = await axios.request(options);
-              
-            //     if (response.status !== 200 || !response.data) {
-            //       return res.status(400).json({ errors: [{ msg: 'Invalid license plate number' }] });
-            //     }
-            //   }
+            //If licensePlateNumber is provided, verify it
             if (licensePlateNumber) {
-                console.log('License plate verification skipped for testing.');
-              }
+                 const options = {
+                  method: 'POST',
+                   url: 'https://api.attestr.com/api/v2/public/checkx/rc',
+                 headers: {
+                    'Content-Type': 'application/json',
+                   'Authorization': `Basic ${process.env.ATTESTR_AUTH_TOKEN}`,
+                 },
+                 data: {
+                     reg: licensePlateNumber,
+                  },
+                };
               
+                const response = await axios.request(options);
+              
+                if (response.status !== 200 || !response.data) {
+             return res.status(400).json({ errors: [{ msg: 'Invalid license plate number' }] });
+                }
+               }
+                      
               
             driver = new TruckDriver({
                 name,
