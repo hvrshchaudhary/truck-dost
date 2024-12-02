@@ -35,32 +35,30 @@ router.post(
                 return res.status(400).json({ errors: [{ msg: 'User already exists' }] });
             }
             // If licensePlateNumber is provided, verify it
+            // if (licensePlateNumber) {
+            //     const options = {
+            //       method: 'POST',
+            //       url: 'https://api.attestr.com/api/v2/public/checkx/rc',
+            //       headers: {
+            //         'Content-Type': 'application/json',
+            //         'Authorization': `Basic ${process.env.ATTESTR_AUTH_TOKEN}`,
+            //       },
+            //       data: {
+            //         reg: licensePlateNumber,
+            //       },
+            //     };
+              
+            //     const response = await axios.request(options);
+              
+            //     if (response.status !== 200 || !response.data) {
+            //       return res.status(400).json({ errors: [{ msg: 'Invalid license plate number' }] });
+            //     }
+            //   }
             if (licensePlateNumber) {
-                // Prepare the API request
-                // const authToken = Buffer.from(process.env.ATTESTR_AUTH_TOKEN).toString('base64');
-                const options = {
-                method: 'POST',
-                url: 'https://api.attestr.com/api/v2/public/checkx/rc',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Basic ${process.env.ATTESTR_AUTH_TOKEN}`,
-                },
-                data: {
-                    reg: licensePlateNumber,
-                },
-                };
-
-                // Make the API call
-                const response = await axios.request(options);
-
-                // Check the response
-                if (response.status === 200 && response.data) {
-                // License plate is valid
-                // Optionally, you can store the vehicle details from response.data
-                } else {
-                return res.status(400).json({ errors: [{ msg: 'Invalid license plate number' }] });
-                }
-            }
+                console.log('License plate verification skipped for testing.');
+              }
+              
+              
             driver = new TruckDriver({
                 name,
                 mobileNumber,
