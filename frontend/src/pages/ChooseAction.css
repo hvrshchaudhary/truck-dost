@@ -16,9 +16,9 @@ body {
     text-align: center;
 }
 
-/* Main container */
+/* Main container for the action choices */
 .choose-action-container {
-    background-color: rgba(0, 0, 0, 0.8);  /* Darker background for better contrast */
+    background-color: rgba(0, 0, 0, 0.8);  /* Darker background for contrast */
     max-width: 400px;
     width: 100%;
     padding: 40px;
@@ -42,14 +42,15 @@ body {
     color: #f0f0f0;
 }
 
-/* Button Styles */
+/* Button Container */
 .action-buttons {
     display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 20px;
+    flex-direction: column;
+    gap: 20px; /* Added gap between the buttons */
+    margin-top: 20px;
 }
 
+/* Individual Button Styles */
 .btn {
     padding: 16px 32px;
     font-size: 1.2rem;
@@ -57,13 +58,14 @@ body {
     border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.2s ease;
-    width: 48%;
     font-weight: bold;
     text-transform: uppercase;
+    width: 100%;
 }
 
+/* Log In button specific styles */
 .login-btn {
-    background-color: #1d72b8; /* Darker blue for better visibility */
+    background-color: #1d72b8; /* Darker blue */
     color: white;
 }
 
@@ -72,8 +74,9 @@ body {
     transform: translateY(-3px);
 }
 
+/* Sign Up button specific styles */
 .signup-btn {
-    background-color: #28a745; /* Darker green for better visibility */
+    background-color: #28a745; /* Darker green */
     color: white;
 }
 
