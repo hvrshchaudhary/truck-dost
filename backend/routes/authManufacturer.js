@@ -137,6 +137,9 @@ router.post(
 // @route   POST api/manufacturer/login
 // @desc    Authenticate manufacturer & get token
 // @access  Public
+// @route   POST api/manufacturer/login
+// @desc    Authenticate manufacturer & get token
+// @access  Public
 router.post(
     '/login',
     [
@@ -163,11 +166,11 @@ router.post(
                 return res.status(400).json({ errors: [{ msg: 'Invalid credentials' }] });
             }
 
-            // Return JWT
+            // Return JWT with manufacturer role
             const payload = {
                 user: {
                     id: manufacturer.id,
-                    role: 'manufacturer',
+                    role: 'manufacturer',  // Manufacturer role
                 },
             };
 
@@ -186,6 +189,7 @@ router.post(
         }
     }
 );
+
 const auth = require('../middleware/auth');
 
 // @route   GET api/manufacturer/profile

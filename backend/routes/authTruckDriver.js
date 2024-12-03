@@ -159,22 +159,22 @@ router.post(
 
         try {
             // Check if user exists
-            let driver = await TruckDriver.findOne({ mobileNumber });
-            if (!driver) {
+            let truckDriver = await TruckDriver.findOne({ mobileNumber });
+            if (!truckDriver) {
                 return res.status(400).json({ errors: [{ msg: 'Invalid credentials' }] });
             }
 
             // Compare passwords
-            const isMatch = await bcrypt.compare(password, driver.password);
+            const isMatch = await bcrypt.compare(password, truckDriver.password);
             if (!isMatch) {
                 return res.status(400).json({ errors: [{ msg: 'Invalid credentials' }] });
             }
 
-            // Return JWT
+            // Return JWT with truckDriver role
             const payload = {
                 user: {
-                    id: driver.id,
-                    role: 'truckDriver',
+                    id: truckDriver.id,
+                    role: 'truckDriver',  // Truck driver role
                 },
             };
 
@@ -193,6 +193,7 @@ router.post(
         }
     }
 );
+
 const auth = require('../middleware/auth');
 
 // @route   GET api/truckDriver/profile
