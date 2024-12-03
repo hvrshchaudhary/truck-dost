@@ -1,15 +1,18 @@
 import React, { useState } from "react";
 import "./Form.css";
 
-function Form() {
+function Form({ type, apiUrl }) {
   const [formData, setFormData] = useState({
-    name: "",
+    companyName: "",
+    address: "",
+    gstNumber: "",
     mobileNumber: "",
     password: "",
     truckCapacity: "",
     licensePlateNumber: "",
-    date: "", // Assuming the date field is relevant (e.g., registration date)
+    date: "",
   });
+
   const [responseMessage, setResponseMessage] = useState("");
 
   const handleChange = (e) => {
@@ -23,12 +26,12 @@ function Form() {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:5001/api/truckDriver/register", {
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData), // Send form data as JSON
+        body: JSON.stringify(formData),
       });
 
       const data = await response.json();
@@ -37,7 +40,6 @@ function Form() {
         setResponseMessage(data.errors.map((error) => error.msg).join(", "));
       } else if (data.token) {
         setResponseMessage("Registration successful!");
-        // Optionally, you could store the token in localStorage or state to manage user authentication
       }
     } catch (error) {
       console.error("Error:", error);
@@ -47,30 +49,85 @@ function Form() {
 
   return (
     <div className="container">
-      <h1 className="form-title">Truck Dost Driver Registration</h1>
+      <h1 className="form-title">{type} Registration</h1>
       <form className="styled-form" onSubmit={handleSubmit}>
-        {/* Name Field */}
-        <div className="form-group">
-          <label htmlFor="name">Name</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            placeholder="Enter Your Name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-          />
-        </div>
+        {/* Conditional rendering for Manufacturer and Driver fields */}
+        {type === "Manufacturer" && (
+          <>
+            <div className="form-group">
+              <label htmlFor="companyName">Company Name</label>
+              <input
+                type="text"
+                id="companyName"
+                name="companyName"
+                placeholder="Enter Company Name"
+                value={formData.companyName}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="address">Address</label>
+              <input
+                type="text"
+                id="address"
+                name="address"
+                placeholder="Enter Address"
+                value={formData.address}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="gstNumber">GST Number (Optional)</label>
+              <input
+                type="text"
+                id="gstNumber"
+                name="gstNumber"
+                placeholder="Enter GST Number"
+                value={formData.gstNumber}
+                onChange={handleChange}
+              />
+            </div>
+          </>
+        )}
 
-        {/* Mobile Number Field */}
+        {type === "Driver" && (
+          <>
+            <div className="form-group">
+              <label htmlFor="truckCapacity">Truck Capacity</label>
+              <input
+                type="text"
+                id="truckCapacity"
+                name="truckCapacity"
+                placeholder="Enter Truck Capacity"
+                value={formData.truckCapacity}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="licensePlateNumber">License Plate Number</label>
+              <input
+                type="text"
+                id="licensePlateNumber"
+                name="licensePlateNumber"
+                placeholder="Enter License Plate Number"
+                value={formData.licensePlateNumber}
+                onChange={handleChange}
+              />
+            </div>
+          </>
+        )}
+
+        {/* Common fields for both Manufacturer and Driver */}
         <div className="form-group">
           <label htmlFor="mobileNumber">Mobile Number</label>
           <input
             type="text"
             id="mobileNumber"
             name="mobileNumber"
-            placeholder="Enter Your Number"
+            placeholder="Enter Mobile Number"
             value={formData.mobileNumber}
             onChange={handleChange}
             required
@@ -78,7 +135,6 @@ function Form() {
           />
         </div>
 
-        {/* Password Field */}
         <div className="form-group">
           <label htmlFor="password">Password</label>
           <input
@@ -92,34 +148,6 @@ function Form() {
           />
         </div>
 
-        {/* Truck Capacity Field */}
-        <div className="form-group">
-          <label htmlFor="truckCapacity">Truck Capacity</label>
-          <input
-            type="text"
-            id="truckCapacity"
-            name="truckCapacity"
-            placeholder="Enter Truck Capacity"
-            value={formData.truckCapacity}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        {/* License Plate Number Field */}
-        <div className="form-group">
-          <label htmlFor="licensePlateNumber">License Plate Number</label>
-          <input
-            type="text"
-            id="licensePlateNumber"
-            name="licensePlateNumber"
-            placeholder="Enter License Plate Number"
-            value={formData.licensePlateNumber}
-            onChange={handleChange}
-          />
-        </div>
-
-        {/* Date Field */}
         <div className="form-group">
           <label htmlFor="date">Date</label>
           <input
@@ -132,7 +160,7 @@ function Form() {
           />
         </div>
 
-        {/* Buttons */}
+        {/* Submit Button */}
         <div className="form-buttons">
           <button type="reset" className="reset-btn">
             Reset
@@ -144,7 +172,7 @@ function Form() {
       </form>
 
       {/* Display response message */}
-      {responseMessage && <p>{responseMessage}</p>}
+      {responseMessage && <p className="error-message">{responseMessage}</p>}
     </div>
   );
 }
