@@ -1,19 +1,24 @@
-import React, { useState } from "react";
-import "./Form.css";
+import React, { useState } from 'react';
+import './Form.css';
 
-function Form({ type, apiUrl }) {
+function Form({ type }) {
   const [formData, setFormData] = useState({
-    companyName: "",
-    address: "",
-    gstNumber: "",
-    mobileNumber: "",
-    password: "",
-    truckCapacity: "",
-    licensePlateNumber: "",
-    date: "",
+    name: '',
+    mobileNumber: '',
+    password: '',
+    truckCapacity: '',
+    licensePlateNumber: '',
+    companyName: '', // For Manufacturer
+    address: '', // For Manufacturer
+    gstNumber: '', // For Manufacturer (Optional)
   });
 
-  const [responseMessage, setResponseMessage] = useState("");
+  const [responseMessage, setResponseMessage] = useState('');
+  const [errors, setErrors] = useState([]);
+
+  const apiUrl = type === 'Driver'
+    ? 'http://localhost:5001/api/truckDriver/register'
+    : 'http://localhost:5001/api/manufacturer/register';
 
   const handleChange = (e) => {
     setFormData({
@@ -22,28 +27,59 @@ function Form({ type, apiUrl }) {
     });
   };
 
+  const handleReset = () => {
+    setFormData({
+      name: '',
+      mobileNumber: '',
+      password: '',
+      truckCapacity: '',
+      licensePlateNumber: '',
+      companyName: '',
+      address: '',
+      gstNumber: '',
+    });
+    setResponseMessage('');
+    setErrors([]);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setResponseMessage('Submitting...');
+    setErrors([]);
+
+    // Remove irrelevant fields based on type
+    const dataToSend = { ...formData };
+    if (type === 'Driver') {
+      delete dataToSend.companyName;
+      delete dataToSend.address;
+      delete dataToSend.gstNumber;
+    } else if (type === 'Manufacturer') {
+      delete dataToSend.truckCapacity;
+      delete dataToSend.licensePlateNumber;
+    }
 
     try {
       const response = await fetch(apiUrl, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(dataToSend),
       });
 
       const data = await response.json();
 
       if (data.errors) {
-        setResponseMessage(data.errors.map((error) => error.msg).join(", "));
+        setErrors(data.errors.map((error) => error.msg));
+        setResponseMessage('Failed to register. Please fix the errors.');
       } else if (data.token) {
-        setResponseMessage("Registration successful!");
+        setResponseMessage('Registration successful!');
+      } else {
+        setResponseMessage('Unexpected response. Please try again.');
       }
     } catch (error) {
-      console.error("Error:", error);
-      setResponseMessage("An error occurred while submitting the form.");
+      console.error('Error:', error);
+      setResponseMessage('An error occurred while submitting the form.');
     }
   };
 
@@ -51,8 +87,72 @@ function Form({ type, apiUrl }) {
     <div className="container">
       <h1 className="form-title">{type} Registration</h1>
       <form className="styled-form" onSubmit={handleSubmit}>
-        {/* Conditional rendering for Manufacturer and Driver fields */}
-        {type === "Manufacturer" && (
+        {type === 'Driver' && (
+          <>
+            <div className="form-group">
+              <label htmlFor="name">Name</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                placeholder="Enter Name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="mobileNumber">Mobile Number</label>
+              <input
+                type="text"
+                id="mobileNumber"
+                name="mobileNumber"
+                placeholder="Enter Mobile Number"
+                value={formData.mobileNumber}
+                onChange={handleChange}
+                required
+                pattern="^\d{10}$"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Enter Password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="truckCapacity">Truck Capacity</label>
+              <input
+                type="text"
+                id="truckCapacity"
+                name="truckCapacity"
+                placeholder="Enter Truck Capacity"
+                value={formData.truckCapacity}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="licensePlateNumber">License Plate Number (Optional)</label>
+              <input
+                type="text"
+                id="licensePlateNumber"
+                name="licensePlateNumber"
+                placeholder="Enter License Plate Number"
+                value={formData.licensePlateNumber}
+                onChange={handleChange}
+              />
+            </div>
+          </>
+        )}
+
+        {type === 'Manufacturer' && (
           <>
             <div className="form-group">
               <label htmlFor="companyName">Company Name</label>
@@ -89,80 +189,36 @@ function Form({ type, apiUrl }) {
                 onChange={handleChange}
               />
             </div>
-          </>
-        )}
-
-        {type === "Driver" && (
-          <>
             <div className="form-group">
-              <label htmlFor="truckCapacity">Truck Capacity</label>
+              <label htmlFor="mobileNumber">Mobile Number</label>
               <input
                 type="text"
-                id="truckCapacity"
-                name="truckCapacity"
-                placeholder="Enter Truck Capacity"
-                value={formData.truckCapacity}
+                id="mobileNumber"
+                name="mobileNumber"
+                placeholder="Enter Mobile Number"
+                value={formData.mobileNumber}
+                onChange={handleChange}
+                required
+                pattern="^\d{10}$"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Enter Password"
+                value={formData.password}
                 onChange={handleChange}
                 required
               />
             </div>
-            <div className="form-group">
-              <label htmlFor="licensePlateNumber">License Plate Number</label>
-              <input
-                type="text"
-                id="licensePlateNumber"
-                name="licensePlateNumber"
-                placeholder="Enter License Plate Number"
-                value={formData.licensePlateNumber}
-                onChange={handleChange}
-              />
-            </div>
           </>
         )}
 
-        {/* Common fields for both Manufacturer and Driver */}
-        <div className="form-group">
-          <label htmlFor="mobileNumber">Mobile Number</label>
-          <input
-            type="text"
-            id="mobileNumber"
-            name="mobileNumber"
-            placeholder="Enter Mobile Number"
-            value={formData.mobileNumber}
-            onChange={handleChange}
-            required
-            pattern="^\d{10}$"
-          />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="password">Password</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            placeholder="Enter Password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="date">Date</label>
-          <input
-            type="date"
-            id="date"
-            name="date"
-            value={formData.date}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        {/* Submit Button */}
         <div className="form-buttons">
-          <button type="reset" className="reset-btn">
+          <button type="reset" className="reset-btn" onClick={handleReset}>
             Reset
           </button>
           <button type="submit" className="submit-btn">
@@ -171,8 +227,14 @@ function Form({ type, apiUrl }) {
         </div>
       </form>
 
-      {/* Display response message */}
-      {responseMessage && <p className="error-message">{responseMessage}</p>}
+      {responseMessage && <p className="response-message">{responseMessage}</p>}
+      {errors.length > 0 && (
+        <ul className="error-messages">
+          {errors.map((error, index) => (
+            <li key={index} className="error-item">{error}</li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
