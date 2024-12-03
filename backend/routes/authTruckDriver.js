@@ -34,28 +34,35 @@ router.post(
             if (driver) {
                 return res.status(400).json({ errors: [{ msg: 'User already exists' }] });
             }
-            //If licensePlateNumber is provided, verify it
+
+            // If licensePlateNumber is provided, verify it
             if (licensePlateNumber) {
-                 const options = {
-                  method: 'POST',
-                   url: 'https://api.attestr.com/api/v2/public/checkx/rc',
-                 headers: {
-                    'Content-Type': 'application/json',
-                   'Authorization': `Basic ${process.env.ATTESTR_AUTH_TOKEN}`,
-                 },
-                 data: {
-                     reg: licensePlateNumber,
-                  },
-                };
-              
-                const response = await axios.request(options);
-              
-                if (response.status !== 200 || !response.data) {
-             return res.status(400).json({ errors: [{ msg: 'Invalid license plate number' }] });
+                try {
+                    const options = {
+                        method: 'POST',
+                        url: 'https://api.attestr.com/api/v2/public/checkx/rc',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Basic ${process.env.ATTESTR_AUTH_TOKEN}`,
+                        },
+                        data: {
+                            reg: licensePlateNumber,
+                        },
+                    };
+                    
+                    const response = await axios.request(options);
+                    
+                    console.log('License Plate Verification Response:', response.data); // Log response data
+                    
+                    if (response.status !== 200 || !response.data) {
+                        return res.status(400).json({ errors: [{ msg: 'Invalid license plate number' }] });
+                    }
+                } catch (err) {
+                    console.error('Error verifying license plate:', err.message);
+                    return res.status(500).json({ errors: [{ msg: 'Error verifying license plate' }] });
                 }
-               }
-                      
-              
+            }
+
             driver = new TruckDriver({
                 name,
                 mobileNumber,
@@ -69,6 +76,11 @@ router.post(
             driver.password = await bcrypt.hash(password, salt);
 
             await driver.save();
+
+            // Check if JWT_SECRET is set in the environment variables
+            if (!process.env.JWT_SECRET) {
+                return res.status(500).json({ errors: [{ msg: 'JWT_SECRET is not set in the environment' }] });
+            }
 
             // Return JWT
             const payload = {
@@ -91,39 +103,39 @@ router.post(
             console.error('Error message:', err.message);
       
             if (err.response) {
-              console.error('Status:', err.response.status);
-              console.error('Data:', err.response.data);
+                console.error('Status:', err.response.status);
+                console.error('Data:', err.response.data);
       
-              // Return detailed error to client
-              return res.status(err.response.status).json({
-                errors: [
-                  {
-                    msg: err.response.data.message || 'License plate verification failed',
-                    code: err.response.data.code,
-                    details: err.response.data,
-                  },
-                ],
-              });
+                // Return detailed error to client
+                return res.status(err.response.status).json({
+                    errors: [
+                        {
+                            msg: err.response.data.message || 'License plate verification failed',
+                            code: err.response.data.code,
+                            details: err.response.data,
+                        },
+                    ],
+                });
             } else if (err.request) {
-              console.error('No response received:', err.request);
+                console.error('No response received:', err.request);
       
-              return res.status(500).json({
-                errors: [
-                  {
-                    msg: 'No response from license plate verification service',
-                  },
-                ],
-              });
+                return res.status(500).json({
+                    errors: [
+                        {
+                            msg: 'No response from license plate verification service',
+                        },
+                    ],
+                });
             } else {
-              console.error('Error:', err.message);
+                console.error('Error:', err.message);
       
-              return res.status(500).json({
-                errors: [
-                  {
-                    msg: 'Server error',
-                  },
-                ],
-              });
+                return res.status(500).json({
+                    errors: [
+                        {
+                            msg: 'Server error',
+                        },
+                    ],
+                });
             }
         }
     }
