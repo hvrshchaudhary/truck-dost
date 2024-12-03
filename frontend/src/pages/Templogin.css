@@ -1,0 +1,119 @@
+/* General Reset and Setup */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+  background: linear-gradient(to right, #4facfe, #00f2fe);
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  text-align: center;
+}
+
+/* Login Container */
+.login-container {
+  background-color: rgba(0, 0, 0, 0.8);  /* Darker background for better contrast */
+  width: 100%;
+  max-width: 400px;
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+h1 {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+  color: #fff;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+/* Form Group */
+.form-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+label {
+  font-size: 1.2rem;
+  color: #f0f0f0;
+  margin-bottom: 5px;
+  display: block;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  font-size: 1.2rem;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  margin-top: 5px;
+  background-color: #fff;
+  color: #333;
+}
+
+input:focus {
+  border-color: #1d72b8;
+  outline: none;
+}
+
+/* Submit Button */
+.btn {
+  width: 100%;
+  padding: 14px;
+  font-size: 1.4rem;
+  background-color: #1d72b8; /* Darker blue */
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  text-transform: uppercase;
+}
+
+.btn:hover {
+  background-color: #155a8a;
+  transform: translateY(-3px);
+}
+
+/* Success and Error Message */
+.error, .success {
+  font-size: 1.2rem;
+  margin-top: 20px;
+  color: #fff;
+}
+
+.error {
+  color: #e74c3c; /* Red color for errors */
+}
+
+.success {
+  color: #2ecc71; /* Green color for success */
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .login-container {
+      width: 90%;
+      padding: 20px;
+  }
+
+  h1 {
+      font-size: 2rem;
+  }
+
+  .form-group label,
+  .form-group input {
+      font-size: 1rem;
+  }
+
+  .btn {
+      font-size: 1.2rem;
+  }
+}
