@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios'; // Ensure axios is installed: npm install axios
 import './Templogin.css';
+import { useNavigate } from 'react-router-dom'; // For redirection after login
+import { jwtDecode } from 'jwt-decode'; // Correct import for jwt-decode
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -9,6 +11,7 @@ function Login() {
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const navigate = useNavigate(); // For redirection after login
 
   const { mobileNumber, password } = formData;
 
@@ -30,12 +33,46 @@ function Login() {
       };
       const body = JSON.stringify({ mobileNumber, password });
 
-      // API call to backend
-      const res = await axios.post('http://localhost:5001/api/truckDriver/register', body, config); // Replace with your backend URL
+      // Try logging in as a truck driver first
+      const truckDriverRes = await axios.post(
+        'http://localhost:5001/api/truckDriver/login',
+        body,
+        config
+      );
 
-      // Display success message and store JWT token
-      setSuccess('Login successful!');
-      localStorage.setItem('token', res.data.token); // Store token in localStorage
+      // If truck driver login successful, save token and redirect
+      if (truckDriverRes.data.token) {
+        const decoded = jwtDecode(truckDriverRes.data.token); // Decode JWT token
+        localStorage.setItem('token', truckDriverRes.data.token); // Store token in localStorage
+
+        // Redirect to truck driver dashboard if the role is 'truckDriver'
+        if (decoded.user.role === 'truckDriver') {
+          navigate('/truck-driver-dashboard');
+        }
+        setSuccess('Login successful as Truck Driver!');
+        return;
+      }
+
+      // If truck driver login failed, try logging in as a manufacturer
+      const manufacturerRes = await axios.post(
+        'http://localhost:5001/api/manufacturer/login',
+        body,
+        config
+      );
+
+      // If manufacturer login successful, save token and redirect
+      if (manufacturerRes.data.token) {
+        const decoded = jwtDecode(manufacturerRes.data.token); // Decode JWT token
+        localStorage.setItem('token', manufacturerRes.data.token); // Store token in localStorage
+
+        // Redirect to manufacturer dashboard if the role is 'manufacturer'
+        if (decoded.user.role === 'manufacturer') {
+          navigate('/manufacturer-dashboard');
+        }
+        setSuccess('Login successful as Manufacturer!');
+        return;
+      }
+
     } catch (err) {
       // Handle errors
       if (err.response && err.response.data.errors) {
