@@ -1,0 +1,130 @@
+/* Container Styling */
+.container {
+  width: 100%;
+  max-width: 800px; /* Adjust for larger screens */
+  margin: 0 auto;
+  padding: 40px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  font-family: 'Roboto', sans-serif;
+  color: #333;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Title Styling */
+.form-title {
+  text-align: center;
+  color: #5f2f6e;
+  font-size: 2.5rem;
+  margin-bottom: 30px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* Form Styling */
+.styled-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Label Styling */
+label {
+  display: block;
+  font-size: 1.1rem;
+  color: #444;
+  margin-bottom: 8px;
+}
+
+/* Input Field Styling */
+input[type="text"],
+input[type="password"],
+input[type="date"] {
+  width: 100%;
+  padding: 12px;
+  font-size: 1.1rem;
+  border: 1px solid #c4c4c4;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+input:focus {
+  border-color: #5f2f6e;
+  outline: none;
+  background-color: #fff;
+}
+
+/* Button Styling */
+.form-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+}
+
+.reset-btn,
+.submit-btn {
+  width: 48%;
+  padding: 12px 0;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.reset-btn {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.reset-btn:hover {
+  background-color: #e0e0e0;
+}
+
+.submit-btn {
+  background-color: #5f2f6e;
+  color: #fff;
+}
+
+.submit-btn:hover {
+  background-color: #4a1a4e;
+  transform: translateY(-2px);
+}
+
+.submit-btn:active {
+  transform: translateY(1px);
+}
+
+/* Error Message Styling */
+.error-message {
+  color: red;
+  font-size: 1rem;
+  text-align: center;
+  margin-top: 20px;
+}
+
+/* Responsive Styling */
+@media (max-width: 768px) {
+  .container {
+    padding: 20px;
+    max-width: 100%;
+  }
+
+  .form-title {
+    font-size: 2rem;
+  }
+
+  .styled-form {
+    gap: 15px;
+  }
+
+  .reset-btn,
+  .submit-btn {
+    width: 100%;
+    margin-top: 10px;
+  }
+}
