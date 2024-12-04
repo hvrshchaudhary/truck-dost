@@ -1,0 +1,111 @@
+/* General Reset and Setup */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(to right, #4facfe, #00f2fe);
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    text-align: center;
+}
+
+/* Main container for the action choices */
+.choose-action-container {
+    background-color: rgba(0, 0, 0, 0.8);  /* Darker background for contrast */
+    max-width: 400px;
+    width: 100%;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    color: #fff;
+}
+
+/* Title and Welcome Text */
+.title {
+    font-size: 2.8rem;
+    margin-bottom: 20px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    color: #fff;
+}
+
+.welcome-text {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    color: #f0f0f0;
+}
+
+/* Button Container */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Added gap between the buttons */
+    margin-top: 20px;
+}
+
+/* Individual Button Styles */
+.btn {
+    padding: 16px 32px;
+    font-size: 1.2rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    font-weight: bold;
+    text-transform: uppercase;
+    width: 100%;
+}
+
+/* Log In button specific styles */
+.login-btn {
+    background-color: #1d72b8; /* Darker blue */
+    color: white;
+}
+
+.login-btn:hover {
+    background-color: #155a8a;
+    transform: translateY(-3px);
+}
+
+/* Sign Up button specific styles */
+.signup-btn {
+    background-color: #28a745; /* Darker green */
+    color: white;
+}
+
+.signup-btn:hover {
+    background-color: #218838;
+    transform: translateY(-3px);
+}
+
+/* Additional Information Text */
+.additional-info {
+    margin-top: 20px;
+    font-size: 1.1rem;
+    color: #f0f0f0;
+}
+
+.additional-info strong {
+    color: #fff;
+    cursor: pointer;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .choose-action-container {
+        width: 90%;
+        padding: 20px;
+    }
+
+    .btn {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}

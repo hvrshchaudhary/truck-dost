@@ -137,6 +137,9 @@ router.post(
 // @route   POST api/manufacturer/login
 // @desc    Authenticate manufacturer & get token
 // @access  Public
+// @route   POST api/manufacturer/login
+// @desc    Authenticate manufacturer & get token
+// @access  Public
 router.post(
     '/login',
     [
@@ -150,20 +153,26 @@ router.post(
         }
         const { mobileNumber, password } = req.body;
 
+        console.log('Login attempt for:', mobileNumber);  // Log the mobile number
+
         try {
             // Check if user exists
             let manufacturer = await Manufacturer.findOne({ mobileNumber });
             if (!manufacturer) {
+                console.log('Manufacturer not found');  // Log if manufacturer not found
                 return res.status(400).json({ errors: [{ msg: 'Invalid credentials' }] });
             }
+
+            console.log('Manufacturer found:', manufacturer);  // Log manufacturer data
 
             // Compare passwords
             const isMatch = await bcrypt.compare(password, manufacturer.password);
             if (!isMatch) {
+                console.log('Password mismatch');  // Log if passwords do not match
                 return res.status(400).json({ errors: [{ msg: 'Invalid credentials' }] });
             }
 
-            // Return JWT
+            // Return JWT with manufacturer role
             const payload = {
                 user: {
                     id: manufacturer.id,
@@ -181,11 +190,13 @@ router.post(
                 }
             );
         } catch (err) {
-            console.error(err.message);
+            console.error('Error in login attempt:', err.message);
             res.status(500).send('Server error');
         }
     }
 );
+
+
 const auth = require('../middleware/auth');
 
 // @route   GET api/manufacturer/profile

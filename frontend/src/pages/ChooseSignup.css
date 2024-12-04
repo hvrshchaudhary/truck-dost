@@ -1,0 +1,99 @@
+/* General Reset and Setup */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(to right, #4facfe, #00f2fe);
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    text-align: center;
+}
+
+/* Main container for the signup choices */
+.choose-signup-container {
+    background-color: rgba(0, 0, 0, 0.8);  /* Darker background for contrast */
+    max-width: 400px;
+    width: 100%;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    color: #fff;
+}
+
+/* Title and Subtitle */
+.title {
+    font-size: 2.8rem;
+    margin-bottom: 20px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    color: #fff;
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    color: #f0f0f0;
+}
+
+/* Button Container */
+.button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+/* Individual Button Styles */
+.signup-button {
+    padding: 16px 32px;
+    font-size: 1.2rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    font-weight: bold;
+    text-transform: uppercase;
+    width: 100%;
+}
+
+/* Driver button specific styles */
+.driver-btn {
+    background-color: #1d72b8; /* Darker blue */
+    color: white;
+}
+
+.driver-btn:hover {
+    background-color: #155a8a;
+    transform: translateY(-3px);
+}
+
+/* Manufacturer button specific styles */
+.manufacturer-btn {
+    background-color: #28a745; /* Darker green */
+    color: white;
+}
+
+.manufacturer-btn:hover {
+    background-color: #218838;
+    transform: translateY(-3px);
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .choose-signup-container {
+        width: 90%;
+        padding: 20px;
+    }
+
+    .signup-button {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}
