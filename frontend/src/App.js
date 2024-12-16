@@ -18,7 +18,7 @@ function App() {
                 <Route path="/signup" element={<ChooseSignup />} />
                 <Route path="/signup/driver" element={<DriverSignup />} />
                 <Route path="/signup/manufacturer" element={<ManufacturerSignup />} />
-                <Route path="/login" element={<Templogin />} /> {/* Route for login */}
+                <Route path="/login" element={<Templogin />} /> 
             </Routes>
         </Router>
     );

@@ -7,7 +7,7 @@ function ChooseAction() {
 
     return (
         <div className="choose-action-container">
-            <h1 className="title">Truck Intelligence System</h1>
+            <h1 className="title">TruckDost</h1>
             <p className="welcome-text">Welcome! Please choose an action to proceed:</p>
 
             <div className="action-buttons">
@@ -23,11 +23,6 @@ function ChooseAction() {
                 >
                     Sign Up
                 </button>
-            </div>
-
-            <div className="additional-info">
-                <p>Don't have an account? <strong>Sign up</strong> to get started!</p>
-                <p>Already have an account? <strong>Log in</strong> to access your profile.</p>
             </div>
         </div>
     );
