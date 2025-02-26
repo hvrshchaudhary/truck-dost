@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios'; // Ensure axios is installed: npm install axios
 import './Templogin.css';
 import { useNavigate } from 'react-router-dom'; // For redirection after login
-import { jwtDecode } from 'jwt-decode'; // Correct import for jwt-decode
+import {jwtDecode} from 'jwt-decode'; // Correct import for jwt-decode
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -25,56 +25,56 @@ function Login() {
     setError('');
     setSuccess('');
 
-    try {
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      };
-      const body = JSON.stringify({ mobileNumber, password });
+    const config = {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    };
+    const body = JSON.stringify({ mobileNumber, password });
 
-      // Try logging in as a truck driver first
-      const truckDriverRes = await axios.post(
+    try {
+      // First try to login as a truck driver
+      const truckDriverLogin = await axios.post(
         'http://localhost:5001/api/truckDriver/login',
         body,
         config
       );
-
-      // If truck driver login successful, save token and redirect
-      if (truckDriverRes.data.token) {
-        const decoded = jwtDecode(truckDriverRes.data.token); // Decode JWT token
-        localStorage.setItem('token', truckDriverRes.data.token); // Store token in localStorage
+      if (truckDriverLogin.data.token) {
+        const decoded = jwtDecode(truckDriverLogin.data.token); // Decode JWT token
+        localStorage.setItem('token', truckDriverLogin.data.token); // Store token in localStorage
 
         // Redirect to truck driver dashboard if the role is 'truckDriver'
         if (decoded.user.role === 'truckDriver') {
           navigate('/truck-driver-dashboard');
+          setSuccess('Login successful as Truck Driver!');
+          return; // Return early if truck driver login is successful
         }
-        setSuccess('Login successful as Truck Driver!');
-        return;
       }
+    } catch (err) {
+      console.error('Truck Driver login failed:', err); // Log if truck driver login fails
+    }
 
-      // If truck driver login failed, try logging in as a manufacturer
-      const manufacturerRes = await axios.post(
+    try {
+      // If truck driver login fails, try logging in as a manufacturer
+      const manufacturerLogin = await axios.post(
         'http://localhost:5001/api/manufacturer/login',
         body,
         config
       );
 
-      // If manufacturer login successful, save token and redirect
-      if (manufacturerRes.data.token) {
-        const decoded = jwtDecode(manufacturerRes.data.token); // Decode JWT token
-        localStorage.setItem('token', manufacturerRes.data.token); // Store token in localStorage
+      if (manufacturerLogin.data.token) {
+        const decoded = jwtDecode(manufacturerLogin.data.token); // Decode JWT token
+        localStorage.setItem('token', manufacturerLogin.data.token); // Store token in localStorage
 
         // Redirect to manufacturer dashboard if the role is 'manufacturer'
         if (decoded.user.role === 'manufacturer') {
           navigate('/manufacturer-dashboard');
+          setSuccess('Login successful as Manufacturer!');
+          return; // Return early if manufacturer login is successful
         }
-        setSuccess('Login successful as Manufacturer!');
-        return;
       }
-
     } catch (err) {
-      // Handle errors
+      console.error('Manufacturer login failed:', err); // Log if manufacturer login fails
       if (err.response && err.response.data.errors) {
         setError(err.response.data.errors[0].msg); // Display error message from backend
       } else {
@@ -121,4 +121,5 @@ function Login() {
   );
 }
 
-export default Login;
+ export default Login;
+ 
