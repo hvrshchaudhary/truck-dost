@@ -10,6 +10,7 @@ const PORT = process.env.PORT || 5000;
 const apiRoutes = require('./routes/api');
 const authTruckDriver = require('./routes/authTruckDriver');
 const authManufacturer = require('./routes/authManufacturer');
+const trips = require('./routes/trips');
 
 // Middleware
 app.use(cors());
@@ -17,6 +18,7 @@ app.use(express.json());
 app.use('/api', apiRoutes);
 app.use('/api/truckDriver', authTruckDriver);
 app.use('/api/manufacturer', authManufacturer);
+app.use('/api/trips', trips);
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI, {

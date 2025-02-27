@@ -42,7 +42,8 @@ function Login() {
       if (truckDriverLogin.data.token) {
         const decoded = jwtDecode(truckDriverLogin.data.token); // Decode JWT token
         localStorage.setItem('token', truckDriverLogin.data.token); // Store token in localStorage
-
+        console.log(truckDriverLogin.data.token); // temporary change
+        
         // Redirect to truck driver dashboard if the role is 'truckDriver'
         if (decoded.user.role === 'truckDriver') {
           navigate('/truck-driver-dashboard');
