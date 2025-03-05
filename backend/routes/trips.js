@@ -18,6 +18,9 @@ router.post(
     // Validate that pickupTime is a valid ISO8601 date string
     check('pickupTime', 'Pickup time is required and must be a valid date')
       .isISO8601(),
+    // Validate that dropTime is a valid ISO8601 date string
+    check('dropTime', 'Drop time is required and must be a valid date')
+      .isISO8601(),
     // Validate that price is numeric
     check('price', 'Price is required and must be a number')
       .isNumeric(),
@@ -31,7 +34,7 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { startCoordinates, endCoordinates, pickupTime, price, startAddress, endAddress } = req.body;
+    const { startCoordinates, endCoordinates, pickupTime, dropTime, price, startAddress, endAddress } = req.body;
 
     try {
       // Create a new Trip document, associating it with the authenticated driver's id
@@ -40,9 +43,10 @@ router.post(
         startCoordinates: { type: 'Point', coordinates: startCoordinates },
         endCoordinates: { type: 'Point', coordinates: endCoordinates },
         pickupTime,
+        dropTime,
         price,
-        startAddress, // Optional, provided by frontend after reverse geocoding
-        endAddress,   // Optional, provided by frontend after reverse geocoding
+        startAddress, // Provided by frontend after reverse geocoding
+        endAddress,   // Provided by frontend after reverse geocoding
       });
 
       await newTrip.save();
@@ -71,5 +75,43 @@ router.get(
     }
   );
   
+// Add new route to fetch drivers traveling near a route (within 25kms of the provided start and end locations)
+router.get(
+  '/near-route',
+  async (req, res) => {
+    // Extract query parameters for start and end coordinates
+    const { startLongitude, startLatitude, endLongitude, endLatitude } = req.query;
+    if (!startLongitude || !startLatitude || !endLongitude || !endLatitude) {
+      return res.status(400).json({ error: "Please provide startLongitude, startLatitude, endLongitude, and endLatitude query parameters." });
+    }
+
+    const sLng = parseFloat(startLongitude);
+    const sLat = parseFloat(startLatitude);
+    const eLng = parseFloat(endLongitude);
+    const eLat = parseFloat(endLatitude);
+
+    try {
+      // Find trips where the startCoordinates and endCoordinates are within 25kms (25000 meters) of the provided coordinates
+      const trips = await Trip.find({
+        startCoordinates: {
+          $near: {
+            $geometry: { type: "Point", coordinates: [sLng, sLat] },
+            $maxDistance: 25000
+          }
+        },
+        endCoordinates: {
+          $near: {
+            $geometry: { type: "Point", coordinates: [eLng, eLat] },
+            $maxDistance: 25000
+          }
+        }
+      });
+      return res.json(trips);
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server error');
+    }
+  }
+);
 
 module.exports = router;

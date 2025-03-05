@@ -28,6 +28,10 @@ const TripSchema = new mongoose.Schema({
     type: Date,
     required: true,
   },
+  dropTime: {
+    type: Date,
+    required: true,
+  },
   price: {
     type: Number,
     required: true,
