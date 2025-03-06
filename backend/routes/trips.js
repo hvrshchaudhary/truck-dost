@@ -91,7 +91,7 @@ router.get(
     const eLat = parseFloat(endLatitude);
 
     try {
-      // Find trips where the startCoordinates and endCoordinates are within 25kms (25000 meters) of the provided coordinates
+      // Option 1: Use $geoWithin with $centerSphere instead of $near for one of the coordinates
       const trips = await Trip.find({
         startCoordinates: {
           $near: {
@@ -100,12 +100,12 @@ router.get(
           }
         },
         endCoordinates: {
-          $near: {
-            $geometry: { type: "Point", coordinates: [eLng, eLat] },
-            $maxDistance: 25000
+          $geoWithin: {
+            $centerSphere: [[eLng, eLat], 25000 / 6378100] // radius in radians (25km / Earth radius)
           }
         }
       });
+      
       return res.json(trips);
     } catch (err) {
       console.error(err.message);
