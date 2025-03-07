@@ -66,6 +66,7 @@ function Login() {
       if (manufacturerLogin.data.token) {
         const decoded = jwtDecode(manufacturerLogin.data.token); // Decode JWT token
         localStorage.setItem('token', manufacturerLogin.data.token); // Store token in localStorage
+        console.log(manufacturerLogin.data.token); // temporary change
 
         // Redirect to manufacturer dashboard if the role is 'manufacturer'
         if (decoded.user.role === 'manufacturer') {
