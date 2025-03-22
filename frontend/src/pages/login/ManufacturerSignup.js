@@ -1,5 +1,5 @@
 import React from "react";
-import Form from "./Form"; // Assuming Form component is reusable
+import Form from "../../components/Form"; // Assuming Form component is reusable
 
 const ManufacturerSignup = () => {
   return (

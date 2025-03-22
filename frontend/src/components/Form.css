@@ -3,7 +3,7 @@
   width: 100%;
   max-width: 800px; /* Adjust for larger screens */
   margin: 0 auto;
-  padding: 40px;
+  padding: 25px; /* Reduced from 40px */
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
@@ -18,7 +18,7 @@
   text-align: center;
   color: #5f2f6e;
   font-size: 2.5rem;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   font-weight: 700;
   letter-spacing: 1px;
 }
@@ -27,21 +27,13 @@
 .styled-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-}
-
-/* Label Styling */
-label {
-  display: block;
-  font-size: 1.1rem;
-  color: #444;
-  margin-bottom: 8px;
+  gap: 12px;
 }
 
 /* Input Field Styling */
-input[type="text"],
-input[type="password"],
-input[type="date"] {
+.container input[type="text"],
+.container input[type="password"],
+.container input[type="date"] {
   width: 100%;
   padding: 12px;
   font-size: 1.1rem;
@@ -51,17 +43,22 @@ input[type="date"] {
   transition: border-color 0.3s ease, background-color 0.3s ease;
 }
 
-input:focus {
+.container input:focus {
   border-color: #5f2f6e;
   outline: none;
   background-color: #fff;
+}
+
+.container input::placeholder {
+  color: #666;
+  font-size: 1rem;
 }
 
 /* Button Styling */
 .form-buttons {
   display: flex;
   justify-content: space-between;
-  margin-top: 30px;
+  margin-top: 5px; 
 }
 
 .reset-btn,
@@ -107,6 +104,55 @@ input:focus {
   margin-top: 20px;
 }
 
+/* Response Message Styling */
+.response-message {
+  font-size: 1.1rem;
+  text-align: center;
+  margin-top: 20px;
+  padding: 10px;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+/* Success Message Styling */
+.success-message {
+  color: #fff;
+  background-color: #4caf50;
+  border-left: 4px solid #388e3c;
+  animation: pulse 1.5s infinite;
+}
+
+/* Error Messages List */
+.error-messages {
+  list-style-type: none;
+  padding: 0;
+  margin-top: 15px;
+}
+
+.error-item {
+  color: #f44336;
+  font-size: 0.9rem;
+  text-align: left;
+  padding: 5px 10px;
+  margin-bottom: 5px;
+  background-color: #ffebee;
+  border-left: 3px solid #f44336;
+  border-radius: 3px;
+}
+
+/* Animation for the success message */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+  }
+}
+
 /* Responsive Styling */
 @media (max-width: 768px) {
   .container {
@@ -119,7 +165,7 @@ input:focus {
   }
 
   .styled-form {
-    gap: 15px;
+    gap: 10px;
   }
 
   .reset-btn,

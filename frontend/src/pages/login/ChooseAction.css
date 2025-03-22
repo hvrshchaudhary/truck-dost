@@ -5,17 +5,6 @@
     box-sizing: border-box;
 }
 
-body {
-    font-family: 'Arial', sans-serif;
-    background: linear-gradient(to right, #4facfe, #00f2fe);
-    color: #fff;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    text-align: center;
-}
-
 /* Main container for the action choices */
 .choose-action-container {
     background-color: rgba(0, 0, 0, 0.8);  /* Darker background for contrast */
@@ -25,6 +14,7 @@ body {
     border-radius: 15px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     color: #fff;
+    text-align: center;
 }
 
 /* Title and Welcome Text */
