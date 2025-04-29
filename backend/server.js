@@ -18,6 +18,11 @@ app.use(cors({
 
 app.use(express.json());
 
+// Root route handler
+app.get('/', (req, res) => {
+    res.json({ message: 'Truck Dost API is running' });
+});
+
 // Request logging middleware
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
