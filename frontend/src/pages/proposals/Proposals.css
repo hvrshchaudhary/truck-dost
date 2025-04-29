@@ -3,32 +3,31 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-  font-family: 'Roboto', Arial, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 /* Header Styles */
 .proposals-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
-  position: relative;
+  margin-bottom: 20px;
 }
 
 .proposals-header h1 {
-  flex-grow: 1;
-  text-align: center;
-  margin: 0;
-  font-size: 1.8rem;
+  font-size: 24px;
+  font-weight: 600;
   color: #333;
 }
 
 .back-btn {
   background-color: #f0f0f0;
   border: none;
-  border-radius: 4px;
-  padding: 8px 15px;
+  border-radius: 5px;
+  padding: 8px 16px;
+  font-size: 14px;
   cursor: pointer;
-  font-weight: 500;
+  color: #333;
   display: flex;
   align-items: center;
   transition: background-color 0.3s;
@@ -38,126 +37,51 @@
   background-color: #e0e0e0;
 }
 
-/* Error Message */
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 16px;
+  color: #666;
+}
+
 .error-message {
   background-color: #ffebee;
-  color: #d32f2f;
-  padding: 12px;
-  border-radius: 4px;
+  color: #c62828;
+  padding: 10px 15px;
+  border-radius: 5px;
   margin-bottom: 20px;
+}
+
+.no-proposals {
   text-align: center;
+  padding: 40px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
 }
 
-/* Error Container with actions */
-.error-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 40px 0;
+.no-proposals p {
+  margin-bottom: 20px;
+  color: #666;
 }
 
-.error-actions {
-  display: flex;
-  gap: 15px;
-  margin-top: 20px;
-}
-
-.refresh-btn {
-  background-color: #2196F3;
+.action-btn {
+  background-color: #4CAF50;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 5px;
   padding: 10px 20px;
+  font-size: 14px;
   cursor: pointer;
-  font-weight: 500;
   transition: background-color 0.3s;
 }
 
-.refresh-btn:hover {
-  background-color: #0b7dda;
-}
-
-.back-btn-large {
-  background-color: #f0f0f0;
-  border: none;
-  border-radius: 4px;
-  padding: 10px 20px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.3s;
-}
-
-.back-btn-large:hover {
-  background-color: #e0e0e0;
-}
-
-/* Trip Details Card */
-.trip-details-card {
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 30px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.trip-details-card h2 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  color: #333;
-  font-size: 1.4rem;
-  border-bottom: 1px solid #e0e0e0;
-  padding-bottom: 10px;
-}
-
-.trip-info {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-
-.trip-route,
-.trip-times {
-  flex: 1;
-  min-width: 300px;
-}
-
-.location-info,
-.time-info,
-.price-info {
-  margin-bottom: 15px;
-}
-
-.info-label {
-  font-weight: 600;
-  color: #555;
-  display: block;
-  margin-bottom: 4px;
-}
-
-.info-value {
-  display: block;
-  color: #333;
-}
-
-/* Proposals Section */
-.proposals-section h2 {
-  margin-top: 20px;
-  margin-bottom: 20px;
-  color: #333;
-  font-size: 1.4rem;
-}
-
-.no-proposals-message {
-  background-color: #e8f5e9;
-  padding: 15px;
-  border-radius: 4px;
-  text-align: center;
-  color: #2e7d32;
+.action-btn:hover {
+  background-color: #3e8e41;
 }
 
 .proposals-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 20px;
 }
 
@@ -165,167 +89,192 @@
 .proposal-card {
   background-color: white;
   border-radius: 8px;
-  padding: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-left: 4px solid #2196F3; /* Default color */
-  transition: transform 0.2s, box-shadow 0.2s;
+  overflow: hidden;
+  transition: transform 0.2s;
 }
 
 .proposal-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* Status-based coloring */
-.proposal-card.pending {
-  border-left-color: #2196F3;
-}
-
-.proposal-card.accepted {
-  border-left-color: #4CAF50;
-}
-
-.proposal-card.rejected {
-  border-left-color: #F44336;
 }
 
 .proposal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  padding: 15px 20px;
+  background-color: #f9f9f9;
   border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
 }
 
 .proposal-header h3 {
+  font-size: 16px;
+  font-weight: 600;
   margin: 0;
-  font-size: 1.2rem;
   color: #333;
 }
 
-.proposal-status {
-  font-size: 0.85rem;
-  font-weight: 600;
-  padding: 4px 8px;
-  border-radius: 12px;
-  color: white;
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 50px;
+  font-size: 12px;
+  font-weight: 500;
 }
 
-.proposal-status.pending {
-  background-color: #2196F3;
+.status-badge.pending {
+  background-color: #fff8e1;
+  color: #f57c00;
 }
 
-.proposal-status.accepted {
+.status-badge.accepted {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-badge.rejected {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.proposal-trip-details {
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.trip-route {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.route-point {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.point-marker {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-top: 5px;
+}
+
+.point-marker.origin {
   background-color: #4CAF50;
 }
 
-.proposal-status.rejected {
-  background-color: #F44336;
+.point-marker.destination {
+  background-color: #f44336;
 }
 
-.proposal-content {
-  margin-bottom: 15px;
+.route-line {
+  width: 2px;
+  height: 30px;
+  background-color: #ddd;
+  margin-left: 5px;
 }
 
-.proposal-details {
-  background-color: #f9f9f9;
-  padding: 12px;
-  border-radius: 4px;
-  margin-bottom: 15px;
-  white-space: pre-line;
+.point-details {
+  display: flex;
+  flex-direction: column;
 }
 
-.manufacturer-info {
-  margin-bottom: 15px;
+.point-label {
+  font-size: 12px;
+  color: #888;
+}
+
+.point-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.trip-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px dashed #eee;
 }
 
 .info-item {
-  margin-bottom: 8px;
+  flex: 1 1 30%;
+  min-width: 150px;
 }
 
-.proposal-date {
-  font-size: 0.85rem;
-  color: #757575;
-  text-align: right;
-  margin-top: 10px;
+.info-label {
+  font-size: 12px;
+  color: #888;
+  display: block;
+  margin-bottom: 2px;
 }
 
-.date-label {
-  color: #555;
-  margin-right: 6px;
+.info-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
 }
 
-/* Proposal Actions */
-.proposal-actions {
-  display: flex;
-  justify-content: space-between;
+.proposal-details {
+  padding: 20px;
+}
+
+.proposal-detail-item {
+  margin-bottom: 15px;
+}
+
+.detail-label {
+  font-size: 12px;
+  color: #888;
+  display: block;
+  margin-bottom: 3px;
+}
+
+.detail-value {
+  font-size: 14px;
+  color: #333;
+}
+
+.detail-value.message {
+  background-color: #f9f9f9;
+  padding: 10px;
+  border-radius: 5px;
+  font-style: italic;
+}
+
+.accepted-info,
+.rejected-info {
   margin-top: 15px;
   padding-top: 15px;
-  border-top: 1px solid #eee;
+  border-top: 1px dashed #eee;
 }
 
-.accept-btn,
-.reject-btn {
-  border: none;
-  border-radius: 4px;
-  padding: 8px 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  flex: 1;
-  margin: 0 5px;
+.driver-info {
+  background-color: #e8f5e9;
+  padding: 10px;
+  border-radius: 5px;
 }
 
-.accept-btn {
-  background-color: #4CAF50;
-  color: white;
-}
-
-.accept-btn:hover {
-  background-color: #388E3C;
-}
-
-.reject-btn {
-  background-color: #F44336;
-  color: white;
-}
-
-.reject-btn:hover {
-  background-color: #D32F2F;
-}
-
-/* Loading Spinner */
-.loading-spinner {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 200px;
-  font-weight: 600;
-  color: #666;
+.rejected-info {
+  background-color: #ffebee;
+  padding: 10px;
+  border-radius: 5px;
 }
 
 /* Responsive Styles */
 @media (max-width: 768px) {
-  .proposals-list {
-    grid-template-columns: 1fr;
-  }
-  
-  .proposals-header {
+  .proposal-header {
     flex-direction: column;
-    gap: 15px;
+    align-items: flex-start;
+    gap: 10px;
   }
-  
-  .proposals-header h1 {
-    order: -1;
+
+  .info-item {
+    flex: 1 1 100%;
   }
-  
-  .back-btn {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .trip-info {
-    flex-direction: column;
-  }
-} 
+}

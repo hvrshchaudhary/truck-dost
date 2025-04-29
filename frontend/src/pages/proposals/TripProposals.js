@@ -7,13 +7,13 @@ import './Proposals.css';
 const TripProposals = () => {
   const { tripId } = useParams();
   const navigate = useNavigate();
-  
+
   const [loading, setLoading] = useState(true);
   const [tripData, setTripData] = useState(null);
   const [proposals, setProposals] = useState([]);
   const [error, setError] = useState(null);
   const [userData, setUserData] = useState(null);
-  
+
   // Authentication check
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -36,57 +36,57 @@ const TripProposals = () => {
       navigate('/login');
     }
   }, [navigate]);
-  
+
   // Fetch trip data and proposals
   useEffect(() => {
     const fetchTripData = async () => {
       if (!userData) return;
-      
+
       const token = localStorage.getItem('token');
       if (!token) return;
-      
+
       setLoading(true);
-      
+
       try {
         const config = {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         };
-        
+
         // Fetch trip details
         console.log(`Fetching trip with ID: ${tripId}`);
         const tripResponse = await axios.get(
-          `http://localhost:5001/api/trips/${tripId}`,
+          `${process.env.REACT_APP_API_URL}/api/trips/${tripId}`,
           config
         );
-        
+
         setTripData(tripResponse.data);
         console.log('Trip data loaded successfully:', tripResponse.data);
-        
+
         // Now fetch proposals for this trip
         console.log('Fetching proposals for trip:', tripId);
         const proposalsResponse = await axios.get(
-          `http://localhost:5001/api/proposals/received`,
+          `${process.env.REACT_APP_API_URL}/api/proposals/received`,
           config
         );
-        
+
         // Filter proposals for this specific trip
         const tripProposals = proposalsResponse.data.filter(
           proposal => proposal.trip && proposal.trip._id === tripId
         );
-        
+
         console.log(`Found ${tripProposals.length} proposals for this trip`);
         setProposals(tripProposals);
         setError(null);
       } catch (err) {
         console.error('Error fetching data:', err);
-        
+
         let errorMessage = 'Failed to load data. Please try again.';
-        
+
         if (err.response) {
           console.error('Error response:', err.response.status, err.response.data);
-          
+
           if (err.response.status === 401) {
             errorMessage = 'Authentication failed. Please log out and log in again.';
             localStorage.removeItem('token');
@@ -97,32 +97,32 @@ const TripProposals = () => {
             errorMessage = err.response.data.msg;
           }
         }
-        
+
         setError(errorMessage);
       } finally {
         setLoading(false);
       }
     };
-    
+
     if (userData && tripId) {
       fetchTripData();
     }
   }, [tripId, userData, navigate]);
-  
+
   // Format date for display
   const formatDate = (dateString) => {
     if (!dateString) return 'Not specified';
-    
-    const options = { 
-      year: 'numeric', 
-      month: 'short', 
+
+    const options = {
+      year: 'numeric',
+      month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
-  
+
   // Handle proposal action (accept/reject)
   const handleProposalAction = async (proposalId, status) => {
     const token = localStorage.getItem('token');
@@ -130,7 +130,7 @@ const TripProposals = () => {
       navigate('/login');
       return;
     }
-    
+
     try {
       const config = {
         headers: {
@@ -138,45 +138,45 @@ const TripProposals = () => {
           'Authorization': `Bearer ${token}`
         }
       };
-      
+
       // Update proposal status
       await axios.put(
-        `http://localhost:5001/api/proposals/${proposalId}`,
+        `${process.env.REACT_APP_API_URL}/api/proposals/${proposalId}`,
         { status },
         config
       );
-      
+
       // Update proposals in state
-      setProposals(prevProposals => 
-        prevProposals.map(proposal => 
-          proposal._id === proposalId 
-            ? { ...proposal, status } 
+      setProposals(prevProposals =>
+        prevProposals.map(proposal =>
+          proposal._id === proposalId
+            ? { ...proposal, status }
             : proposal
         )
       );
-      
+
       alert(`Proposal ${status} successfully!`);
     } catch (err) {
       console.error(`Error processing proposal:`, err);
-      
+
       // Simple error message without redundant details
       alert(`Failed to process proposal. Please try again.`);
     }
   };
-  
+
   // Handle going back to dashboard
   const handleBack = () => {
     navigate('/truck-driver-dashboard');
   };
-  
+
   // Display location from either address or coordinates
   const getLocationDisplay = (address, coordinates) => {
     if (address) return address;
-    
+
     if (coordinates && coordinates.coordinates && coordinates.coordinates.length === 2) {
       return `Lat: ${coordinates.coordinates[1]}, Long: ${coordinates.coordinates[0]}`;
     }
-    
+
     return 'Location not specified';
   };
 
@@ -196,7 +196,7 @@ const TripProposals = () => {
         </button>
         <h1>Proposals</h1>
       </header>
-      
+
       {error ? (
         <div className="error-container">
           <div className="error-message">{error}</div>
@@ -246,7 +246,7 @@ const TripProposals = () => {
               </div>
             </div>
           )}
-          
+
           <div className="proposals-section">
             {proposals.length === 0 ? (
               <div className="no-proposals-message">
@@ -255,8 +255,8 @@ const TripProposals = () => {
             ) : (
               <div className="proposals-list">
                 {proposals.map((proposal) => (
-                  <div 
-                    key={proposal._id} 
+                  <div
+                    key={proposal._id}
                     className={`proposal-card ${proposal.status}`}
                   >
                     <div className="proposal-header">
@@ -265,12 +265,12 @@ const TripProposals = () => {
                         {proposal.status.charAt(0).toUpperCase() + proposal.status.slice(1)}
                       </span>
                     </div>
-                    
+
                     <div className="proposal-content">
                       <div className="proposal-details">
                         {proposal.proposalDetails}
                       </div>
-                      
+
                       <div className="manufacturer-info">
                         <div className="info-item">
                           <span className="info-label">Company:</span>
@@ -289,22 +289,22 @@ const TripProposals = () => {
                           </div>
                         )}
                       </div>
-                      
+
                       <div className="proposal-date">
                         <span className="date-label">Received on:</span>
                         <span className="date-value">{formatDate(proposal.createdAt)}</span>
                       </div>
                     </div>
-                    
+
                     {proposal.status === 'pending' && (
                       <div className="proposal-actions">
-                        <button 
+                        <button
                           onClick={() => handleProposalAction(proposal._id, 'accepted')}
                           className="accept-btn"
                         >
                           Accept
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleProposalAction(proposal._id, 'rejected')}
                           className="reject-btn"
                         >

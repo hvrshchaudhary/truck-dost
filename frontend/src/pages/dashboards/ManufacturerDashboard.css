@@ -1,0 +1,377 @@
+/* ManufacturerDashboard.css - Professional Modern UI */
+
+:root {
+    --primary-color: #2563eb;
+    --primary-hover: #1d4ed8;
+    --secondary-color: #64748b;
+    --danger-color: #dc2626;
+    --danger-hover: #b91c1c;
+    --success-color: #16a34a;
+    --warning-color: #d97706;
+    --background-color: #f8fafc;
+    --card-background: #ffffff;
+    --border-color: #e2e8f0;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-primary);
+}
+
+.dashboard-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-header {
+    background-color: var(--card-background);
+    padding: 1.25rem 2rem;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.dashboard-header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.dashboard-content {
+    flex: 1;
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.dashboard-sections {
+    display: flex;
+    gap: 2rem;
+    background-color: var(--card-background);
+    border-radius: 0.75rem;
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    min-height: calc(100vh - 8rem);
+}
+
+.section-nav {
+    width: 280px;
+    background-color: var(--card-background);
+    padding: 1.5rem;
+    border-right: 1px solid var(--border-color);
+}
+
+.section-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.section-nav li {
+    margin-bottom: 0.5rem;
+}
+
+.section-nav button {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: none;
+    background: none;
+    text-align: left;
+    color: var(--text-secondary);
+    font-weight: 500;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.section-nav button:hover {
+    background-color: var(--background-color);
+    color: var(--text-primary);
+}
+
+.section-nav button.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.section-nav button.logout-btn {
+    background-color: var(--danger-color);
+    color: white;
+    margin-top: 2rem;
+    justify-content: center;
+}
+
+.section-nav button.logout-btn:hover {
+    background-color: var(--danger-hover);
+}
+
+.main-content {
+    flex: 1;
+    padding: 1.5rem;
+    background-color: var(--background-color);
+}
+
+.section {
+    background-color: var(--card-background);
+    border-radius: 0.75rem;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1.5rem;
+}
+
+.section-header {
+    padding: 1.25rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.proposal-card,
+.trip-card {
+    background-color: var(--card-background);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+    border: 1px solid var(--border-color);
+    margin-bottom: 1rem;
+}
+
+.proposal-card:hover,
+.trip-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.proposal-header,
+.trip-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.proposal-details,
+.trip-details {
+    color: var(--text-secondary);
+}
+
+.proposal-details p,
+.trip-details p {
+    margin: 0.5rem 0;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.proposal-details strong,
+.trip-details strong {
+    color: var(--text-primary);
+    min-width: 120px;
+}
+
+.proposal-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.action-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.accept-btn {
+    background-color: var(--success-color);
+}
+
+.accept-btn:hover {
+    background-color: #15803d;
+}
+
+.reject-btn {
+    background-color: var(--danger-color);
+}
+
+.reject-btn:hover {
+    background-color: var(--danger-hover);
+}
+
+.cancel-btn {
+    background-color: var(--warning-color);
+    color: white;
+}
+
+.cancel-btn:hover {
+    background-color: #b45309;
+}
+
+.delete-btn {
+    background-color: var(--danger-color);
+}
+
+.delete-btn:hover {
+    background-color: var(--danger-hover);
+}
+
+.profile-form {
+    padding: 1.5rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    background-color: var(--background-color);
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-group input:disabled,
+.form-group textarea:disabled {
+    background-color: var(--background-color);
+    cursor: not-allowed;
+}
+
+/* Status badges */
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-badge.pending {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.status-badge.accepted {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.status-badge.rejected {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.status-badge.cancelled {
+    background-color: #f1f5f9;
+    color: #475569;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .dashboard-sections {
+        flex-direction: column;
+    }
+
+    .section-nav {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .section-nav ul {
+        display: flex;
+        overflow-x: auto;
+        padding-bottom: 1rem;
+    }
+
+    .section-nav li {
+        margin-right: 1rem;
+        margin-bottom: 0;
+    }
+
+    .section-nav button {
+        white-space: nowrap;
+    }
+
+    .section-nav button.logout-btn {
+        margin-top: 0;
+        margin-left: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .dashboard-content {
+        padding: 1rem;
+    }
+
+    .proposal-actions {
+        flex-direction: column;
+    }
+
+    .action-btn {
+        width: 100%;
+    }
+}

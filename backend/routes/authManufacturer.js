@@ -38,15 +38,15 @@ router.post(
             if (gstNumber) {
                 // Prepare the API request
                 const options = {
-                method: 'GET',
-                url: 'https://appyflow.in/api/verifyGST',
-                params: {
-                    gstNo: gstNumber,
-                    key_secret: process.env.APPYFLOW_KEY_SECRET,
-                },
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                    method: 'GET',
+                    url: 'https://appyflow.in/api/verifyGST',
+                    params: {
+                        gstNo: gstNumber,
+                        key_secret: process.env.APPYFLOW_KEY_SECRET,
+                    },
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
                 };
 
                 // Make the API call
@@ -56,13 +56,13 @@ router.post(
                 if (response.data && response.data.taxpayerInfo) {
                     console.log("gstin verified");
                     console.log(response.data);
-                // GST number is valid
-                // Optionally, you can store additional taxpayer info
-                // manufacturer.taxpayerInfo = response.data.taxpayerInfo;
+                    // GST number is valid
+                    // Optionally, you can store additional taxpayer info
+                    // manufacturer.taxpayerInfo = response.data.taxpayerInfo;
                 } else if (response.data && response.data.error) {
-                return res.status(400).json({ errors: [{ msg: response.data.message || 'Invalid GST number' }] });
+                    return res.status(400).json({ errors: [{ msg: response.data.message || 'Invalid GST number' }] });
                 } else {
-                return res.status(400).json({ errors: [{ msg: 'Invalid GST number' }] });
+                    return res.status(400).json({ errors: [{ msg: 'Invalid GST number' }] });
                 }
             }
             manufacturer = new Manufacturer({
@@ -98,40 +98,40 @@ router.post(
             );
         } catch (err) {
             console.error('Error message:', err.message);
-          
+
             if (err.response) {
-              console.error('Status:', err.response.status);
-              console.error('Data:', err.response.data);
-          
-              return res.status(err.response.status).json({
-                errors: [
-                  {
-                    msg: err.response.data.message || 'GST number verification failed',
-                  },
-                ],
-              });
+                console.error('Status:', err.response.status);
+                console.error('Data:', err.response.data);
+
+                return res.status(err.response.status).json({
+                    errors: [
+                        {
+                            msg: err.response.data.message || 'GST number verification failed',
+                        },
+                    ],
+                });
             } else if (err.request) {
-              console.error('No response received:', err.request);
-          
-              return res.status(500).json({
-                errors: [
-                  {
-                    msg: 'No response from GST verification service',
-                  },
-                ],
-              });
+                console.error('No response received:', err.request);
+
+                return res.status(500).json({
+                    errors: [
+                        {
+                            msg: 'No response from GST verification service',
+                        },
+                    ],
+                });
             } else {
-              console.error('Error:', err.message);
-          
-              return res.status(500).json({
-                errors: [
-                  {
-                    msg: 'Server error',
-                  },
-                ],
-              });
+                console.error('Error:', err.message);
+
+                return res.status(500).json({
+                    errors: [
+                        {
+                            msg: 'Server error',
+                        },
+                    ],
+                });
             }
-          }
+        }
     }
 );
 // @route   POST api/manufacturer/login
@@ -211,4 +211,68 @@ router.get('/profile', auth, async (req, res) => {
         res.status(500).send('Server error');
     }
 });
+
+// @route   PUT api/manufacturer/profile
+// @desc    Update manufacturer's profile
+// @access  Private
+router.put('/profile', auth, async (req, res) => {
+    try {
+        const {
+            companyName,
+            address,
+            gstNumber,
+            mobileNumber,
+            email,
+            contactPerson,
+            website,
+            description
+        } = req.body;
+
+        // Find the manufacturer and update their profile
+        const manufacturer = await Manufacturer.findById(req.user.id);
+        if (!manufacturer) {
+            return res.status(404).json({ msg: 'Manufacturer not found' });
+        }
+
+        // Update the fields that were provided
+        if (companyName) manufacturer.companyName = companyName;
+        if (address) manufacturer.address = address;
+        if (gstNumber) {
+            // Verify GST number if provided
+            const options = {
+                method: 'GET',
+                url: 'https://appyflow.in/api/verifyGST',
+                params: {
+                    gstNo: gstNumber,
+                    key_secret: process.env.APPYFLOW_KEY_SECRET,
+                },
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            };
+
+            const response = await axios.request(options);
+            if (response.data && response.data.taxpayerInfo) {
+                manufacturer.gstNumber = gstNumber;
+            } else {
+                return res.status(400).json({ msg: 'Invalid GST number' });
+            }
+        }
+        if (mobileNumber) manufacturer.mobileNumber = mobileNumber;
+        if (email) manufacturer.email = email;
+        if (contactPerson) manufacturer.contactPerson = contactPerson;
+        if (website) manufacturer.website = website;
+        if (description) manufacturer.description = description;
+
+        await manufacturer.save();
+
+        // Return the updated profile without the password
+        const updatedManufacturer = await Manufacturer.findById(req.user.id).select('-password');
+        res.json(updatedManufacturer);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+});
+
 module.exports = router;

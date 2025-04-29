@@ -23,9 +23,19 @@ const ProposalSchema = new Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'accepted', 'rejected'],
+    enum: ['pending', 'accepted', 'rejected', 'cancelled'],
     default: 'pending',
     required: true,
+  },
+  cancelledBy: {
+    type: String,
+    enum: ['manufacturer', 'driver'],
+  },
+  cancellationReason: {
+    type: String,
+  },
+  cancelledAt: {
+    type: Date,
   }
 }, {
   timestamps: true

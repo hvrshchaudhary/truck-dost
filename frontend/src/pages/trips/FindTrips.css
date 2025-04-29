@@ -339,39 +339,53 @@
   gap: 20px;
 }
 
-.trip-locations, .trip-times {
+.trip-locations,
+.trip-times {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.trip-location, .trip-time {
+.trip-location,
+.trip-time {
   display: flex;
   flex-direction: column;
 }
 
-.location-label, .time-label {
+.location-label,
+.time-label,
+.driver-label {
   font-size: 0.8rem;
   color: #757575;
   margin-bottom: 3px;
 }
 
-.location-value, .time-value {
+.location-value,
+.time-value,
+.driver-value {
   font-weight: 500;
   color: #333;
   font-size: 0.95rem;
 }
 
-.trip-card-actions {
-  padding: 15px 20px;
-  background-color: #f9f9f9;
+.trip-driver {
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  border-top: 1px solid #eee;
+  flex-direction: column;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed #eee;
 }
 
-.view-details-btn, .send-proposal-btn {
+.trip-card-actions {
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid #eee;
+  padding-top: 15px;
+  margin-top: 15px;
+}
+
+.view-details-btn,
+.send-proposal-btn {
   padding: 8px 16px;
   border: none;
   border-radius: 4px;
@@ -390,12 +404,68 @@
 }
 
 .send-proposal-btn {
-  background-color: #2196f3;
+  background-color: #ff9800;
   color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
 }
 
 .send-proposal-btn:hover {
-  background-color: #1976d2;
+  background-color: #f57c00;
+}
+
+.send-proposal-btn:disabled {
+  background-color: #ffcc80;
+  cursor: not-allowed;
+}
+
+/* Proposal Form Styles */
+.proposal-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.proposal-input-group {
+  width: 100%;
+}
+
+.proposal-message {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  resize: vertical;
+}
+
+.proposal-message:focus {
+  border-color: #2196f3;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+}
+
+.proposal-error {
+  color: #d32f2f;
+  font-size: 0.85rem;
+  margin-top: 5px;
+}
+
+.proposal-success {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  padding: 15px;
+  border-radius: 4px;
+  text-align: center;
+  font-weight: 500;
+  width: 100%;
 }
 
 /* Responsive styles */
@@ -403,16 +473,25 @@
   .location-inputs {
     grid-template-columns: 1fr;
   }
-  
+
   .trip-card-details {
     grid-template-columns: 1fr;
   }
-  
+
   .trip-card-actions {
     flex-direction: column;
   }
-  
-  .view-details-btn, .send-proposal-btn {
+
+  .view-details-btn,
+  .send-proposal-btn {
     width: 100%;
   }
-} 
+
+  .proposal-form {
+    flex-direction: column;
+  }
+
+  .proposal-message {
+    min-height: 60px;
+  }
+}

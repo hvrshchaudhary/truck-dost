@@ -5,7 +5,6 @@ import './Form.css';
 function Form({ type, apiUrl }) {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    name: '',
     mobileNumber: '',
     password: '',
     truckCapacity: '',
@@ -32,7 +31,6 @@ function Form({ type, apiUrl }) {
 
   const handleReset = () => {
     setFormData({
-      name: '',
       mobileNumber: '',
       password: '',
       truckCapacity: '',
@@ -50,6 +48,15 @@ function Form({ type, apiUrl }) {
     setResponseMessage('Submitting...');
     setErrors([]);
 
+    // Validate required fields for Manufacturer
+    if (type === 'Manufacturer') {
+      if (!formData.companyName || !formData.address) {
+        setErrors(['Company name and address are required']);
+        setResponseMessage('Failed to register. Please fix the errors.');
+        return;
+      }
+    }
+
     // Validate truck capacity for Driver type
     if (type === 'Driver') {
       if (formData.truckCapacity && isNaN(parseFloat(formData.truckCapacity))) {
@@ -57,7 +64,7 @@ function Form({ type, apiUrl }) {
         setResponseMessage('Failed to register. Please fix the errors.');
         return;
       }
-      
+
       // Convert truck capacity to number
       if (formData.truckCapacity) {
         formData.truckCapacity = parseFloat(formData.truckCapacity);
@@ -98,11 +105,11 @@ function Form({ type, apiUrl }) {
           navigate('/login');
         }, 1500);
       } else {
-        setResponseMessage('Unexpected response. Please try again.');
+        setResponseMessage('Registration failed. Please try again.');
       }
     } catch (error) {
-      console.error('Error:', error);
-      setResponseMessage('An error occurred while submitting the form.');
+      console.error('Registration error:', error);
+      setResponseMessage('An error occurred. Please try again.');
     }
   };
 

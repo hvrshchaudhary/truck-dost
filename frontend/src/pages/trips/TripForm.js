@@ -7,13 +7,13 @@ import Map from 'ol/Map';
 import View from 'ol/View';
 import TileLayer from 'ol/layer/Tile';
 import OSM from 'ol/source/OSM';
-import {fromLonLat, toLonLat} from 'ol/proj';
-import {Point} from 'ol/geom';
+import { fromLonLat, toLonLat } from 'ol/proj';
+import { Point } from 'ol/geom';
 import Feature from 'ol/Feature';
-import {Vector as VectorLayer} from 'ol/layer';
-import {Vector as VectorSource} from 'ol/source';
-import {Style, Circle, Fill, Stroke} from 'ol/style';
-import {defaults as defaultControls} from 'ol/control';
+import { Vector as VectorLayer } from 'ol/layer';
+import { Vector as VectorSource } from 'ol/source';
+import { Style, Circle, Fill, Stroke } from 'ol/style';
+import { defaults as defaultControls } from 'ol/control';
 import './TripForm.css';
 
 const TripForm = () => {
@@ -27,25 +27,24 @@ const TripForm = () => {
     dropTime: '',
     price: ''
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [userData, setUserData] = useState(null);
-  
+
   // Map related state
   const [viewState, setViewState] = useState({
     longitude: 78.9629, // Default to center of India
     latitude: 20.5937,
     zoom: 4
   });
-  
+
   const [showMap, setShowMap] = useState(false);
   const [activeLocation, setActiveLocation] = useState(null); // 'start' or 'end'
   const [mapMarkers, setMapMarkers] = useState({
     start: null,  // {longitude, latitude}
     end: null     // {longitude, latitude}
   });
-  
+
   // Refs for map elements
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -61,7 +60,7 @@ const TripForm = () => {
 
     try {
       const decoded = jwtDecode(token);
-      
+
       // Check token expiration
       const currentTime = Date.now() / 1000; // Convert to seconds
       if (decoded.exp && decoded.exp < currentTime) {
@@ -70,18 +69,19 @@ const TripForm = () => {
         navigate('/login');
         return;
       }
-      
+
       // Check if user has correct role
       if (decoded.user.role !== 'truckDriver') {
         localStorage.removeItem('token');
         navigate('/login');
         return;
       }
-      
+
       // Verify token with backend (optional but adds security)
       const verifyToken = async () => {
         try {
-          const response = await axios.get('http://localhost:5001/api/trips', {
+          // No need to save response as it's not used
+          await axios.get('http://localhost:5001/api/trips', {
             headers: {
               'Authorization': `Bearer ${token}`
             }
@@ -97,15 +97,60 @@ const TripForm = () => {
         }
       };
       verifyToken();
-      
-      setUserData(decoded.user);
+
+      // Removed setting userData
     } catch (err) {
       console.error('Token verification failed:', err);
       localStorage.removeItem('token');
       navigate('/login');
     }
   }, [navigate]);
-  
+
+  // Define handleMapClick function before it's used in useEffect
+  const handleMapClick = (event) => {
+    if (!activeLocation) return;
+
+    const { lng, lat } = event.lngLat;
+
+    if (activeLocation === 'start') {
+      // Update form data
+      setFormData(prev => ({
+        ...prev,
+        startCoordinates: [lng, lat]
+      }));
+
+      // Update marker state
+      setMapMarkers(prev => ({
+        ...prev,
+        start: {
+          longitude: lng,
+          latitude: lat
+        }
+      }));
+
+      // Get address from coordinates
+      reverseGeocode(lng, lat, 'startAddress');
+    } else {
+      // Update form data
+      setFormData(prev => ({
+        ...prev,
+        endCoordinates: [lng, lat]
+      }));
+
+      // Update marker state
+      setMapMarkers(prev => ({
+        ...prev,
+        end: {
+          longitude: lng,
+          latitude: lat
+        }
+      }));
+
+      // Get address from coordinates
+      reverseGeocode(lng, lat, 'endAddress');
+    }
+  };
+
   // Initialize and cleanup map
   useEffect(() => {
     if (showMap && mapRef.current && !mapInstanceRef.current) {
@@ -129,7 +174,7 @@ const TripForm = () => {
           });
         }
       });
-      
+
       // Create map
       mapInstanceRef.current = new Map({
         target: mapRef.current,
@@ -145,14 +190,14 @@ const TripForm = () => {
           zoom: viewState.zoom
         })
       });
-      
+
       // Add click event handler
       mapInstanceRef.current.on('click', (evt) => {
         if (!activeLocation) return;
-        
+
         const coords = mapInstanceRef.current.getCoordinateFromPixel(evt.pixel);
         const lonLat = toLonLat(coords);
-        
+
         // Use the handleMapClick function with the converted coordinates
         handleMapClick({
           lngLat: {
@@ -160,27 +205,27 @@ const TripForm = () => {
             lat: lonLat[1]
           }
         });
-        
+
         // Update the marker on the map
         updateMarker(lonLat[0], lonLat[1], activeLocation);
       });
-      
+
       // Add existing marker if any
       if (activeLocation === 'start' && mapMarkers.start) {
         updateMarker(
-          mapMarkers.start.longitude, 
+          mapMarkers.start.longitude,
           mapMarkers.start.latitude,
           'start'
         );
       } else if (activeLocation === 'end' && mapMarkers.end) {
         updateMarker(
-          mapMarkers.end.longitude, 
+          mapMarkers.end.longitude,
           mapMarkers.end.latitude,
           'end'
         );
       }
     }
-    
+
     // Cleanup
     return () => {
       if (mapInstanceRef.current) {
@@ -189,8 +234,17 @@ const TripForm = () => {
         vectorSourceRef.current = null;
       }
     };
-  }, [showMap, activeLocation]);
-  
+  }, [
+    showMap,
+    activeLocation,
+    mapMarkers.start,
+    mapMarkers.end,
+    viewState.latitude,
+    viewState.longitude,
+    viewState.zoom,
+    handleMapClick
+  ]);
+
   // Update map center when viewState changes
   useEffect(() => {
     if (mapInstanceRef.current) {
@@ -200,11 +254,11 @@ const TripForm = () => {
       mapInstanceRef.current.getView().setZoom(viewState.zoom);
     }
   }, [viewState]);
-  
+
   // Function to update marker on the map
   const updateMarker = (lng, lat, locationType) => {
     if (!vectorSourceRef.current) return;
-    
+
     // Clear existing markers of the same type
     const features = vectorSourceRef.current.getFeatures();
     features.forEach(feature => {
@@ -212,13 +266,13 @@ const TripForm = () => {
         vectorSourceRef.current.removeFeature(feature);
       }
     });
-    
+
     // Add new marker
     const marker = new Feature({
       geometry: new Point(fromLonLat([lng, lat])),
       name: `${locationType} marker`
     });
-    
+
     marker.set('locationType', locationType);
     vectorSourceRef.current.addFeature(marker);
   };
@@ -227,8 +281,8 @@ const TripForm = () => {
     const { name, value } = e.target;
     setFormData(prevState => ({
       ...prevState,
-      [name]: name === 'price' ? 
-        (value === '' ? '' : parseFloat(value)) : 
+      [name]: name === 'price' ?
+        (value === '' ? '' : parseFloat(value)) :
         value
     }));
   };
@@ -236,7 +290,7 @@ const TripForm = () => {
   const handleCoordinateChange = (e, type, index) => {
     const { value } = e.target;
     const newValue = value === '' ? 0 : parseFloat(value);
-    
+
     setFormData(prevState => {
       const newCoordinates = [...prevState[type]];
       newCoordinates[index] = newValue;
@@ -245,15 +299,17 @@ const TripForm = () => {
         [type]: newCoordinates
       };
     });
-    
+
     // Update marker on the map if coordinates are changed manually
     if (type === 'startCoordinates') {
       setMapMarkers(prev => ({
         ...prev,
-        start: { longitude: index === 0 ? newValue : prev.start?.longitude, 
-                 latitude: index === 1 ? newValue : prev.start?.latitude }
+        start: {
+          longitude: index === 0 ? newValue : prev.start?.longitude,
+          latitude: index === 1 ? newValue : prev.start?.latitude
+        }
       }));
-      
+
       if (showMap && activeLocation === 'start' && vectorSourceRef.current) {
         const lon = index === 0 ? newValue : mapMarkers.start?.longitude;
         const lat = index === 1 ? newValue : mapMarkers.start?.latitude;
@@ -264,10 +320,12 @@ const TripForm = () => {
     } else if (type === 'endCoordinates') {
       setMapMarkers(prev => ({
         ...prev,
-        end: { longitude: index === 0 ? newValue : prev.end?.longitude, 
-               latitude: index === 1 ? newValue : prev.end?.latitude }
+        end: {
+          longitude: index === 0 ? newValue : prev.end?.longitude,
+          latitude: index === 1 ? newValue : prev.end?.latitude
+        }
       }));
-      
+
       if (showMap && activeLocation === 'end' && vectorSourceRef.current) {
         const lon = index === 0 ? newValue : mapMarkers.end?.longitude;
         const lat = index === 1 ? newValue : mapMarkers.end?.latitude;
@@ -277,12 +335,12 @@ const TripForm = () => {
       }
     }
   };
-  
+
   // Open map for selecting a location
   const openMapSelector = (locationType) => {
     setActiveLocation(locationType);
     setShowMap(true);
-    
+
     // If we already have coordinates for this location type, center the map there
     if (locationType === 'start' && mapMarkers.start) {
       setViewState({
@@ -298,60 +356,30 @@ const TripForm = () => {
       });
     }
   };
-  
-  // Handle click on map to place a marker
-  const handleMapClick = (event) => {
-    if (!activeLocation) return;
-    
-    const { lng, lat } = event.lngLat;
-    
-    // Update marker position
-    setMapMarkers(prev => ({
-      ...prev,
-      [activeLocation]: { longitude: lng, latitude: lat }
-    }));
-    
-    // Update form data with new coordinates
-    if (activeLocation === 'start') {
-      setFormData(prev => ({
-        ...prev,
-        startCoordinates: [lng, lat]
-      }));
-      // Get address (reverse geocoding)
-      reverseGeocode(lng, lat, 'startAddress');
-    } else if (activeLocation === 'end') {
-      setFormData(prev => ({
-        ...prev,
-        endCoordinates: [lng, lat]
-      }));
-      // Get address (reverse geocoding)
-      reverseGeocode(lng, lat, 'endAddress');
-    }
-  };
-  
+
   // Get current location using browser's geolocation API
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
       alert('Geolocation is not supported by your browser');
       return;
     }
-    
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
-        
+
         // Update map view
         setViewState({
           longitude: lng,
           latitude: lat,
           zoom: 15
         });
-        
+
         // Update marker
         if (activeLocation) {
           updateMarker(lng, lat, activeLocation);
-          
+
           // Update form data and state
           handleMapClick({
             lngLat: { lng, lat }
@@ -365,12 +393,12 @@ const TripForm = () => {
       { enableHighAccuracy: true }
     );
   };
-  
+
   // Close map and confirm location selection
   const confirmLocationSelection = () => {
     setShowMap(false);
   };
-  
+
   // Reverse geocoding (coordinates to address)
   const reverseGeocode = async (lng, lat, addressField) => {
     try {
@@ -395,38 +423,38 @@ const TripForm = () => {
         // Format the address nicely
         const addressData = response.data.address;
         let formattedAddress = '';
-        
+
         // Create a descriptive address with nearby landmarks if available
         if (addressData.road || addressData.amenity || addressData.building) {
           formattedAddress += (addressData.road || addressData.amenity || addressData.building) + ', ';
         }
-        
+
         if (addressData.suburb || addressData.neighbourhood) {
           formattedAddress += (addressData.suburb || addressData.neighbourhood) + ', ';
         }
-        
+
         if (addressData.city || addressData.town || addressData.village) {
           formattedAddress += (addressData.city || addressData.town || addressData.village) + ', ';
         }
-        
+
         if (addressData.state) {
           formattedAddress += addressData.state;
         }
-        
+
         if (addressData.postcode) {
           formattedAddress += ' - ' + addressData.postcode;
         }
-        
+
         // If formatted address is empty or too short, fall back to display_name
         if (formattedAddress.length < 10) {
           formattedAddress = response.data.display_name;
         }
-        
+
         setFormData(prev => ({
           ...prev,
           [addressField]: formattedAddress
         }));
-        
+
         console.log('Address found:', formattedAddress);
       } else {
         // Fallback to coordinate-based address if no result
@@ -434,7 +462,7 @@ const TripForm = () => {
           ...prev,
           [addressField]: `Location at [${lng.toFixed(6)}, ${lat.toFixed(6)}]`
         }));
-        
+
         console.warn('No address found for coordinates:', lng, lat);
       }
     } catch (err) {
@@ -496,26 +524,26 @@ const TripForm = () => {
       navigate('/truck-driver-dashboard');
     } catch (err) {
       console.error('Error creating trip:', err);
-      
+
       let errorMessage = 'Failed to create trip. Please try again.';
-      
+
       if (err.response) {
         console.error('Error response:', err.response.status, err.response.data);
-        
+
         // Handle specific error cases
         if (err.response.status === 401) {
           errorMessage = 'Authentication failed. Please log out and log in again.';
-          
+
           // Redirect to login if token is invalid
           localStorage.removeItem('token');
           setTimeout(() => navigate('/login'), 2000);
         } else if (err.response.data) {
-          errorMessage = err.response.data.msg || 
-                        (err.response.data.errors && err.response.data.errors[0]?.msg) || 
-                        errorMessage;
+          errorMessage = err.response.data.msg ||
+            (err.response.data.errors && err.response.data.errors[0]?.msg) ||
+            errorMessage;
         }
       }
-      
+
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -529,9 +557,9 @@ const TripForm = () => {
   return (
     <div className="trip-form-container">
       <h1>List New Trip</h1>
-      
+
       {error && <div className="error-message">{error}</div>}
-      
+
       {showMap && (
         <div className="map-selection-overlay">
           <div className="map-header">
@@ -539,13 +567,13 @@ const TripForm = () => {
             <button className="close-map-btn" onClick={() => setShowMap(false)}>×</button>
           </div>
           <div className="map-container">
-            <div 
-              ref={mapRef} 
+            <div
+              ref={mapRef}
               style={{ width: '100%', height: '400px' }}
             ></div>
             <div className="map-controls">
-              <button 
-                className="geolocate-btn" 
+              <button
+                className="geolocate-btn"
                 onClick={getCurrentLocation}
                 title="Use your current location"
               >
@@ -555,7 +583,7 @@ const TripForm = () => {
           </div>
           <div className="map-actions">
             <p className="map-instruction">Click on the map to select a location</p>
-            <button 
+            <button
               className="select-location-btn"
               onClick={confirmLocationSelection}
             >
@@ -564,7 +592,7 @@ const TripForm = () => {
           </div>
         </div>
       )}
-      
+
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="startAddress">Starting Point (Address)</label>
@@ -577,15 +605,15 @@ const TripForm = () => {
             placeholder="Enter starting address"
             required
           />
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="location-btn"
             onClick={() => openMapSelector('start')}
           >
             Select from Map
           </button>
         </div>
-        
+
         <div className="form-group coordinates-group">
           <label>Starting Coordinates</label>
           <div className="coordinates-inputs">
@@ -613,7 +641,7 @@ const TripForm = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="form-group">
           <label htmlFor="endAddress">Destination (Address)</label>
           <input
@@ -625,15 +653,15 @@ const TripForm = () => {
             placeholder="Enter destination address"
             required
           />
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="location-btn"
             onClick={() => openMapSelector('end')}
           >
             Select from Map
           </button>
         </div>
-        
+
         <div className="form-group coordinates-group">
           <label>Destination Coordinates</label>
           <div className="coordinates-inputs">
@@ -661,7 +689,7 @@ const TripForm = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="form-group">
           <label htmlFor="pickupTime">Pickup Time</label>
           <input
@@ -673,7 +701,7 @@ const TripForm = () => {
             required
           />
         </div>
-        
+
         <div className="form-group">
           <label htmlFor="dropTime">Drop Time</label>
           <input
@@ -685,7 +713,7 @@ const TripForm = () => {
             required
           />
         </div>
-        
+
         <div className="form-group">
           <label htmlFor="price">Price (₹)</label>
           <input
@@ -700,19 +728,19 @@ const TripForm = () => {
             required
           />
         </div>
-        
+
         <div className="form-actions">
-          <button 
-            type="button" 
-            className="cancel-btn" 
+          <button
+            type="button"
+            className="cancel-btn"
             onClick={handleCancel}
             disabled={loading}
           >
             Cancel
           </button>
-          <button 
-            type="submit" 
-            className="submit-btn" 
+          <button
+            type="submit"
+            className="submit-btn"
             disabled={loading}
           >
             {loading ? 'Creating Trip...' : 'Create Trip'}

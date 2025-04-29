@@ -7,7 +7,8 @@
 
 /* Login Container */
 .login-container {
-  background-color: rgba(0, 0, 0, 0.8);  /* Darker background for better contrast */
+  background-color: rgba(0, 0, 0, 0.8);
+  /* Darker background for better contrast */
   width: 100%;
   max-width: 400px;
   padding: 40px;
@@ -34,7 +35,8 @@
 /* Make the label selector more specific to override TripForm.css */
 .login-container .form-group label {
   font-size: 1.2rem;
-  color: #f0f0f0 !important; /* Use !important to ensure override */
+  color: #f0f0f0 !important;
+  /* Use !important to ensure override */
   margin-bottom: 5px;
   display: block;
   font-weight: normal;
@@ -78,7 +80,8 @@
   width: 100%;
   padding: 14px;
   font-size: 1.4rem;
-  background-color: #1d72b8; /* Darker blue */
+  background-color: #1d72b8;
+  /* Darker blue */
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -93,7 +96,7 @@
 }
 
 /* Success and Error Message */
-.login-container .error, 
+.login-container .error,
 .login-container .success {
   font-size: 1.2rem;
   margin-top: 20px;
@@ -101,30 +104,59 @@
 }
 
 .login-container .error {
-  color: #e74c3c; /* Red color for errors */
+  color: #e74c3c;
+  /* Red color for errors */
 }
 
 .login-container .success {
-  color: #2ecc71; /* Green color for success */
+  color: #2ecc71;
+  /* Green color for success */
 }
 
 /* Responsive Design */
 @media (max-width: 600px) {
   .login-container {
-      width: 90%;
-      padding: 20px;
+    width: 90%;
+    padding: 20px;
   }
 
   .login-container h1 {
-      font-size: 2rem;
+    font-size: 2rem;
   }
 
   .login-container .form-group label,
   .login-container .form-group input {
-      font-size: 1rem;
+    font-size: 1rem;
   }
 
   .login-container .btn {
-      font-size: 1.2rem;
+    font-size: 1.2rem;
   }
+}
+
+.server-status {
+  margin: 10px 0;
+  padding: 15px;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.server-status.error {
+  background-color: #ffeeee;
+  border: 1px solid #ffaaaa;
+  color: #cc0000;
+}
+
+.retry-btn {
+  margin-top: 10px;
+  padding: 8px 15px;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.retry-btn:hover {
+  background-color: #e0e0e0;
 }

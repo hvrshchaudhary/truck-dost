@@ -49,11 +49,11 @@ router.post(
                             reg: licensePlateNumber,
                         },
                     };
-                    
+
                     const response = await axios.request(options);
-                    
+
                     console.log('License Plate Verification Response:', response.data); // Log response data
-                    
+
                     if (response.status !== 200 || !response.data) {
                         return res.status(400).json({ errors: [{ msg: 'Invalid license plate number' }] });
                     }
@@ -101,11 +101,11 @@ router.post(
             );
         } catch (err) {
             console.error('Error message:', err.message);
-      
+
             if (err.response) {
                 console.error('Status:', err.response.status);
                 console.error('Data:', err.response.data);
-      
+
                 // Return detailed error to client
                 return res.status(err.response.status).json({
                     errors: [
@@ -118,7 +118,7 @@ router.post(
                 });
             } else if (err.request) {
                 console.error('No response received:', err.request);
-      
+
                 return res.status(500).json({
                     errors: [
                         {
@@ -128,7 +128,7 @@ router.post(
                 });
             } else {
                 console.error('Error:', err.message);
-      
+
                 return res.status(500).json({
                     errors: [
                         {
@@ -203,6 +203,51 @@ router.get('/profile', auth, async (req, res) => {
     try {
         const driver = await TruckDriver.findById(req.user.id).select('-password');
         res.json(driver);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+});
+
+// @route   PUT api/truckDriver/profile
+// @desc    Update truck driver's profile
+// @access  Private
+router.put('/profile', auth, async (req, res) => {
+    try {
+        const {
+            name,
+            email,
+            phone,
+            address,
+            licenseNumber,
+            vehicleType,
+            vehicleNumber,
+            experience,
+            companyName
+        } = req.body;
+
+        // Find the driver and update their profile
+        const driver = await TruckDriver.findById(req.user.id);
+        if (!driver) {
+            return res.status(404).json({ msg: 'Driver not found' });
+        }
+
+        // Update the fields that were provided
+        if (name) driver.name = name;
+        if (email) driver.email = email;
+        if (phone) driver.phone = phone;
+        if (address) driver.address = address;
+        if (licenseNumber) driver.licenseNumber = licenseNumber;
+        if (vehicleType) driver.vehicleType = vehicleType;
+        if (vehicleNumber) driver.vehicleNumber = vehicleNumber;
+        if (experience) driver.experience = experience;
+        if (companyName) driver.companyName = companyName;
+
+        await driver.save();
+
+        // Return the updated profile without the password
+        const updatedDriver = await TruckDriver.findById(req.user.id).select('-password');
+        res.json(updatedDriver);
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server error');
