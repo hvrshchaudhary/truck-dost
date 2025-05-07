@@ -1,31 +1,29 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import './ChooseAction.css'; // Ensure to use the correct CSS file
+import { Link } from 'react-router-dom';
+import { images } from '../../assets/images';
+import './ChooseAction.css';
 
-function ChooseAction() {
-    const navigate = useNavigate();
-
+const ChooseAction = () => {
     return (
-        <div className="choose-action-container">
-            <h1 className="title">TruckDost</h1>
-            <p className="welcome-text">Welcome! Please choose an action to proceed:</p>
-
-            <div className="action-buttons">
-                <button 
-                    className="btn login-btn" 
-                    onClick={() => navigate('/login')}
-                >
-                    Log In
-                </button>
-                <button 
-                    className="btn signup-btn" 
-                    onClick={() => navigate('/signup')}
-                >
-                    Sign Up
-                </button>
+        <div className="auth-page">
+            <div className="auth-container">
+                <h1>Choose Your Role</h1>
+                <div className="role-buttons">
+                    <Link to="/signup/driver" className="btn btn-primary">
+                        <img src={images.driver} alt="Truck Driver" className="role-icon" />
+                        <span>I'm a Truck Driver</span>
+                    </Link>
+                    <Link to="/signup/manufacturer" className="btn btn-secondary">
+                        <img src={images.manufacturer} alt="Manufacturer" className="role-icon" />
+                        <span>I'm a Manufacturer</span>
+                    </Link>
+                </div>
+                <p className="auth-footer">
+                    Already have an account? <Link to="/login">Login</Link>
+                </p>
             </div>
         </div>
     );
-}
+};
 
 export default ChooseAction;

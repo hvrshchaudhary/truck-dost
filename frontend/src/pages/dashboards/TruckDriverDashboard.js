@@ -95,10 +95,10 @@ function TruckDriverDashboard() {
         setTrips(tripsRes.data);
         setTripsError(null);
 
-        // Fetch proposals for the driver
+        // Fetch received proposals for the driver
         try {
           const proposalsRes = await axios.get(
-            `http://localhost:5001/api/proposals/driver/${userData.id}`,
+            `http://localhost:5001/api/proposals/received`,
             config
           );
           setProposals(proposalsRes.data);
@@ -115,7 +115,6 @@ function TruckDriverDashboard() {
         }
       } catch (err) {
         console.error('Error fetching data:', err);
-
         if (err.response) {
           if (err.response.status === 401) {
             setTripsError('Authentication failed. Please log out and log in again.');
@@ -124,11 +123,9 @@ function TruckDriverDashboard() {
             setTripsError(`Failed to load trips: ${err.response.data.msg || 'Unknown error'}`);
           }
         } else if (err.request) {
-          // The request was made but no response was received
           setTripsError('Failed to connect to the server. Please check your internet connection and try again.');
           setProposalsError('Failed to connect to the server. Please check your internet connection and try again.');
         } else {
-          // Something happened in setting up the request
           setTripsError('An unexpected error occurred. Please try again later.');
           setProposalsError('An unexpected error occurred. Please try again later.');
         }
@@ -553,7 +550,7 @@ function TruckDriverDashboard() {
                 {proposals.map(proposal => (
                   <div key={proposal._id} className="proposal-card">
                     <div className="proposal-header">
-                      <h3>Proposal for Trip #{proposal.trip ? `#${proposal.trip._id.substring(0, 8)}` : 'Unknown Trip'}</h3>
+                      <h3>Proposal from {proposal.manufacturer?.companyName || 'Unknown Manufacturer'}</h3>
                       <span className={`status-badge ${proposal.status}`}>
                         {proposal.status}
                       </span>

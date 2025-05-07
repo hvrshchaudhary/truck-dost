@@ -7,7 +7,8 @@
 
 /* Main container for the signup choices */
 .choose-signup-container {
-    background-color: rgba(0, 0, 0, 0.8);  /* Darker background for contrast */
+    background-color: rgba(0, 0, 0, 0.8);
+    /* Darker background for contrast */
     max-width: 400px;
     width: 100%;
     padding: 40px;
@@ -51,11 +52,22 @@
     font-weight: bold;
     text-transform: uppercase;
     width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.signup-button img {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    object-fit: cover;
 }
 
 /* Driver button specific styles */
 .driver-btn {
-    background-color: #1d72b8; /* Darker blue */
+    background-color: #1d72b8;
+    /* Darker blue */
     color: white;
 }
 
@@ -66,7 +78,8 @@
 
 /* Manufacturer button specific styles */
 .manufacturer-btn {
-    background-color: #28a745; /* Darker green */
+    background-color: #28a745;
+    /* Darker green */
     color: white;
 }
 

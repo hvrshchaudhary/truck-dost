@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { images } from '../../assets/images';
 import './ChooseSignup.css';
 
 const ChooseSignup = () => {
@@ -15,13 +16,15 @@ const ChooseSignup = () => {
                         className="signup-button driver-btn"
                         onClick={() => navigate('/signup/driver')}
                     >
-                        Driver Signup
+                        <img src={images.driver} alt="Truck Driver" className="role-icon" />
+                        <span>Driver Signup</span>
                     </button>
                     <button
                         className="signup-button manufacturer-btn"
                         onClick={() => navigate('/signup/manufacturer')}
                     >
-                        Manufacturer Signup
+                        <img src={images.manufacturer} alt="Manufacturer" className="role-icon" />
+                        <span>Manufacturer Signup</span>
                     </button>
                 </div>
             </div>

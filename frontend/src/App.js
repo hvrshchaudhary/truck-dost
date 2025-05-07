@@ -12,6 +12,7 @@ import FindTrips from './pages/trips/FindTrips';
 import TripProposals from './pages/proposals/TripProposals';
 import MySentProposals from './pages/proposals/MySentProposals';
 import Navbar from './components/Navbar';
+import LandingPage from './pages/LandingPage';
 import './App.css';
 
 // Wrapper component for auth pages
@@ -55,8 +56,11 @@ function App() {
             <DirectAccessHandler />
             <div className="app-container">
                 <Routes>
+                    {/* Landing page */}
+                    <Route path="/" element={<LandingPage />} />
+
                     {/* Auth routes */}
-                    <Route path="/" element={<AuthPageWrapper><ChooseAction /></AuthPageWrapper>} />
+                    <Route path="/choose-role" element={<AuthPageWrapper><ChooseAction /></AuthPageWrapper>} />
                     <Route path="/signup" element={<AuthPageWrapper><ChooseSignup /></AuthPageWrapper>} />
                     <Route path="/signup/driver" element={<AuthPageWrapper><DriverSignup /></AuthPageWrapper>} />
                     <Route path="/signup/manufacturer" element={<AuthPageWrapper><ManufacturerSignup /></AuthPageWrapper>} />

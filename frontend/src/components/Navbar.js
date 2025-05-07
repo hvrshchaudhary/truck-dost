@@ -1,25 +1,20 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import './Navbar.css';
 
-function Navbar() {
-    const navigate = useNavigate();
-
-    const handleLogout = () => {
-        // Remove token from localStorage
-        localStorage.removeItem('token');
-        // Redirect to login page
-        navigate('/login');
-    };
-
+const Navbar = () => {
     return (
-        <div className="navbar">
-            <div className="navbar-content">
-                <div className="logo">TruckDost</div>
-                <button onClick={handleLogout} className="logout-btn">Logout</button>
+        <nav className="navbar">
+            <Link to="/" className="navbar-brand">
+                <img src={`${process.env.PUBLIC_URL}/images/image3.jpeg`} alt="Truck Dost Logo" />
+                <span>Truck Dost</span>
+            </Link>
+            <div className="navbar-links">
+                <Link to="/trips/create" className="nav-link">Create Trip</Link>
+
             </div>
-        </div>
+        </nav>
     );
-}
+};
 
 export default Navbar; 

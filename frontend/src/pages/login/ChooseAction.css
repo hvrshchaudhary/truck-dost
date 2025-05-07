@@ -7,7 +7,8 @@
 
 /* Main container for the action choices */
 .choose-action-container {
-    background-color: rgba(0, 0, 0, 0.8);  /* Darker background for contrast */
+    background-color: rgba(0, 0, 0, 0.8);
+    /* Darker background for contrast */
     max-width: 400px;
     width: 100%;
     padding: 40px;
@@ -36,7 +37,8 @@
 .action-buttons {
     display: flex;
     flex-direction: column;
-    gap: 20px; /* Added gap between the buttons */
+    gap: 20px;
+    /* Added gap between the buttons */
     margin-top: 20px;
 }
 
@@ -55,7 +57,8 @@
 
 /* Log In button specific styles */
 .login-btn {
-    background-color: #1d72b8; /* Darker blue */
+    background-color: #1d72b8;
+    /* Darker blue */
     color: white;
 }
 
@@ -66,7 +69,8 @@
 
 /* Sign Up button specific styles */
 .signup-btn {
-    background-color: #28a745; /* Darker green */
+    background-color: #28a745;
+    /* Darker green */
     color: white;
 }
 
@@ -97,5 +101,114 @@
     .btn {
         width: 100%;
         margin-bottom: 10px;
+    }
+}
+
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    padding: 2rem;
+}
+
+.auth-container {
+    background: white;
+    padding: 3rem;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+}
+
+.auth-container h1 {
+    color: var(--text-color);
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    font-weight: 700;
+}
+
+.role-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.role-buttons .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1.25rem;
+    font-size: 1.2rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: var(--secondary-color);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: var(--secondary-hover);
+    transform: translateY(-2px);
+}
+
+.role-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 0.5rem;
+    object-fit: cover;
+}
+
+.auth-footer {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+.auth-footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .auth-container {
+        padding: 2rem;
+    }
+
+    .auth-container h1 {
+        font-size: 2rem;
+    }
+
+    .role-buttons .btn {
+        padding: 1rem;
+        font-size: 1.1rem;
+    }
+
+    .role-icon {
+        width: 40px;
+        height: 40px;
     }
 }
