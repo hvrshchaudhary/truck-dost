@@ -13,11 +13,31 @@ if (!accountSid || !authToken || !twilioPhoneNumber) {
 
 const client = new twilio(accountSid, authToken);
 
+// Check if a phone number is verified in Twilio
+const isNumberVerified = async (phoneNumber) => {
+    try {
+        if (!phoneNumber.startsWith('+')) {
+            phoneNumber = '+91' + phoneNumber;
+        }
+        const verifiedNumbers = await client.outgoingCallerIds.list();
+        return verifiedNumbers.some(number => number.phoneNumber === phoneNumber);
+    } catch (error) {
+        console.error('Error checking number verification:', error);
+        return false;
+    }
+};
+
 const sendSMS = async (to, message) => {
     try {
         // Validate phone number format
         if (!to.startsWith('+')) {
             to = '+91' + to; // Add country code for India
+        }
+
+        // Check if number is verified (for trial accounts)
+        const isVerified = await isNumberVerified(to);
+        if (!isVerified) {
+            throw new Error('Phone number is not verified. Please verify the number in your Twilio console first.');
         }
 
         const response = await client.messages.create({
@@ -33,11 +53,14 @@ const sendSMS = async (to, message) => {
             console.error('Authentication error: Please check your Twilio credentials');
         } else if (error.code === 21211) {
             console.error('Invalid phone number format');
+        } else if (error.code === 21214) {
+            console.error('Phone number is not verified. Please verify it in your Twilio console.');
         }
         throw error;
     }
 };
 
 module.exports = {
-    sendSMS
+    sendSMS,
+    isNumberVerified
 }; 
