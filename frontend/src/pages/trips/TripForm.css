@@ -118,33 +118,6 @@
   background-color: #f5f5f5;
 }
 
-.map-controls {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 100;
-}
-
-.geolocate-btn {
-  padding: 6px 12px;
-  background-color: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.geolocate-btn:hover {
-  background-color: #f5f5f5;
-}
-
-.geolocate-btn span {
-  margin-right: 5px;
-}
-
 .map-actions {
   width: 100%;
   max-width: 800px;

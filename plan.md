@@ -64,4 +64,55 @@ This plan outlines the components and steps needed to build a minimal prototype 
 *   Manufacturers can send a booking proposal for a specific trip from search results.
 *   Manufacturers can view a list of their previously sent proposals and see if they were accepted or rejected.
 
+---
+
+## Component 6: Frontend - Mapbox Integration for Location Handling
+
+**Overview:** Replace the existing OpenLayers map implementation with Mapbox GL JS for improved UI/UX and features in trip creation and searching.
+
+**Goal:** Achieve functional parity with the old implementation using Mapbox, including selecting start/end points on a map, reverse geocoding, and manual coordinate input. Enhance search with Mapbox Geocoding for text-based origin/destination lookup.
+
+**Key Mapbox Documentation References:**
+*   Mapbox GL JS API: [https://docs.mapbox.com/mapbox-gl-js/api/](https://docs.mapbox.com/mapbox-gl-js/api/)
+*   React Example (Update a feature in realtime): [https://docs.mapbox.com/mapbox-gl-js/example/live-update-feature/](https://docs.mapbox.com/mapbox-gl-js/example/live-update-feature/)
+*   Mapbox Geocoding API: [https://docs.mapbox.com/api/search/geocoding/](https://docs.mapbox.com/api/search/geocoding/) (Implicitly, as it's the standard Mapbox offering for this)
+*   Mapbox `GeolocateControl`: [https://docs.mapbox.com/mapbox-gl-js/api/markers/#geolocatecontrol](https://docs.mapbox.com/mapbox-gl-js/api/markers/#geolocatecontrol)
+
+**Files to Modify & High-Level Changes:**
+
+1.  **`frontend/src/pages/trips/TripForm.js`**:
+    *   Remove OpenLayers imports and related map logic (initialization, event handlers, marker management).
+    *   Import `mapbox-gl` and its CSS.
+    *   Initialize `mapboxgl.Map` in a `useEffect` hook, attaching it to a `div` ref.
+    *   Implement map click listeners to get coordinates (`lngLat` from event).
+    *   Use `mapboxgl.Marker` to display and update markers for start and end locations.
+    *   Replace Nominatim reverse geocoding with Mapbox Geocoding API calls to get addresses from coordinates.
+    *   Integrate `mapboxgl.GeolocateControl` for "My Location" functionality or implement custom geolocation using browser API + `map.flyTo()`.
+    *   Ensure manual coordinate input fields still update the Mapbox map markers and vice-versa.
+
+2.  **`frontend/src/pages/trips/FindTrips.js`**:
+    *   Apply similar OpenLayers-to-Mapbox conversion as in `TripForm.js` for the map used to select pickup/delivery locations.
+    *   For the planned text-based origin/destination search:
+        *   Implement input fields for origin and destination addresses.
+        *   Use Mapbox Geocoding API (forward geocoding) to convert these text addresses into coordinates.
+        *   Pass these coordinates to the existing backend search API (`/api/trips/near-route`).
+    *   Consider displaying returned trip results (start/end points) on the map if feasible.
+
+3.  **`frontend/src/pages/trips/TripForm.css`** and **`frontend/src/pages/trips/FindTrips.css`**:
+    *   Update CSS rules to correctly style the Mapbox map container (`<div ref={mapContainerRef} />`), markers, and any custom controls if needed.
+    *   Remove CSS related to OpenLayers elements.
+
+4.  **`public/index.html`** (or main HTML file):
+    *   Ensure the Mapbox GL JS CSS file (`mapbox-gl.css`) is linked if not already handled by JS import. It's usually imported in the main JS/React entry point or directly in the components.
+
+5.  **`package.json`** (in `frontend` directory):
+    *   Run `npm install mapbox-gl` or `yarn add mapbox-gl`.
+    *   Consider running `npm uninstall ol` or `yarn remove ol` if OpenLayers is no longer used anywhere else in the project.
+
+**General Steps & Considerations:**
+*   Obtain a Mapbox Access Token and securely manage it (e.g., via environment variables). It will be needed for `mapboxgl.accessToken`.
+*   Adapt existing state management (for coordinates, addresses, map visibility) to work with Mapbox's API and event model.
+*   The core data flow (selecting points on map -> updating form state -> submitting form) should remain similar, but with Mapbox APIs.
+*   Error handling for geocoding requests and map loading should be implemented.
+*   Test thoroughly on different browsers/devices if possible.
 --- 

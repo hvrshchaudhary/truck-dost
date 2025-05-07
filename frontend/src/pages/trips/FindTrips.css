@@ -86,30 +86,6 @@
   position: relative;
 }
 
-.map-controls {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 10;
-}
-
-.geolocate-btn {
-  background-color: #fff;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 8px 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.geolocate-btn:hover {
-  background-color: #f5f5f5;
-}
-
 .map-actions {
   background-color: #fff;
   padding: 15px 20px;
@@ -187,6 +163,14 @@
   color: #333;
 }
 
+.location-group label.coordinate-label {
+  font-weight: normal;
+  font-size: 0.9em;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  color: #555;
+}
+
 .coords-group {
   display: flex;
   gap: 10px;
@@ -195,6 +179,14 @@
 
 .coords-group input {
   flex: 1;
+}
+
+.geocoded-info {
+  font-size: 0.8em;
+  color: #007bff;
+  margin-top: -5px;
+  margin-bottom: 10px;
+  display: block;
 }
 
 .location-group input {
