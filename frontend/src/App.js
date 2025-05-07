@@ -68,7 +68,7 @@ function App() {
 
                     {/* Dashboard routes - with Navbar */}
                     <Route path="/truck-driver-dashboard" element={<NavbarWrapper><TruckDriverDashboard /></NavbarWrapper>} />
-                    <Route path="/manufacturer-dashboard" element={<ManufacturerDashboard />} />
+                    <Route path="/manufacturer-dashboard" element={<NavbarWrapper><ManufacturerDashboard /></NavbarWrapper>} />
 
                     {/* Trip management routes - with Navbar */}
                     <Route path="/trips/create" element={<NavbarWrapper><TripForm /></NavbarWrapper>} />
