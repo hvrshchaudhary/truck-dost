@@ -231,137 +231,9 @@ function TruckDriverDashboard() {
     return 'Location not specified';
   };
 
-  // Handle accepting a proposal
-  const handleAcceptProposal = async (proposalId) => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-
-    try {
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      };
-
-      // Update the proposal status to 'accepted'
-      await axios.put(
-        `http://localhost:5001/api/proposals/${proposalId}`,
-        { status: 'accepted' },
-        config
-      );
-
-      // Update the proposals list
-      setProposals(prevProposals =>
-        prevProposals.map(proposal =>
-          proposal._id === proposalId
-            ? { ...proposal, status: 'accepted' }
-            : proposal
-        )
-      );
-
-      alert('Proposal accepted successfully!');
-    } catch (err) {
-      console.error('Error accepting proposal:', err);
-      alert(`Failed to accept proposal: ${err.response?.data?.msg || err.message || 'Unknown error'}`);
-    }
-  };
-
-  // Handle rejecting a proposal
-  const handleRejectProposal = async (proposalId) => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-
-    try {
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      };
-
-      // Update the proposal status to 'rejected'
-      await axios.put(
-        `http://localhost:5001/api/proposals/${proposalId}`,
-        { status: 'rejected' },
-        config
-      );
-
-      // Update the proposals list
-      setProposals(prevProposals =>
-        prevProposals.map(proposal =>
-          proposal._id === proposalId
-            ? { ...proposal, status: 'rejected' }
-            : proposal
-        )
-      );
-
-      alert('Proposal rejected successfully!');
-    } catch (err) {
-      console.error('Error rejecting proposal:', err);
-      alert(`Failed to reject proposal: ${err.response?.data?.msg || err.message || 'Unknown error'}`);
-    }
-  };
-
-  const handleDeleteProposal = async (proposalId) => {
-    if (!proposalId) {
-      console.error('No proposal ID provided for deletion');
-      return;
-    }
-
-    // Show confirmation dialog
-    if (!window.confirm('Are you sure you want to delete this proposal?')) {
-      return;
-    }
-
-    const token = localStorage.getItem('token');
-    if (!token) {
-      console.error('No authentication token found');
-      navigate('/login');
-      return;
-    }
-
-    try {
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      };
-
-      // Delete the proposal
-      await axios.delete(
-        `http://localhost:5001/api/proposals/${proposalId}`,
-        config
-      );
-
-      // Update the proposals list by removing the deleted proposal
-      setProposals(prevProposals => prevProposals.filter(proposal => proposal._id !== proposalId));
-
-      // Show success message
-      alert('Proposal deleted successfully!');
-    } catch (err) {
-      console.error('Error deleting proposal:', err);
-      if (err.response) {
-        if (err.response.status === 401) {
-          alert('Authentication failed. Please log out and log in again.');
-        } else if (err.response.status === 404) {
-          alert('Proposal not found. It may have already been deleted.');
-        } else {
-          alert(`Failed to delete proposal: ${err.response.data.msg || 'Unknown error'}`);
-        }
-      } else if (err.request) {
-        alert('Failed to connect to the server. Please check your internet connection and try again.');
-      } else {
-        alert('An unexpected error occurred. Please try again later.');
-      }
-    }
+  // ADD: Handler to navigate to proposal details page
+  const handleViewProposalDetails = (proposalId) => {
+    navigate(`/proposal/${proposalId}/details`);
   };
 
   const handleLogout = () => {
@@ -548,50 +420,28 @@ function TruckDriverDashboard() {
             ) : (
               <div className="proposals-list">
                 {proposals.map(proposal => (
-                  <div key={proposal._id} className="proposal-card">
-                    <div className="proposal-header">
-                      <h3>Proposal from {proposal.manufacturer?.companyName || 'Unknown Manufacturer'}</h3>
+                  <div key={proposal._id} className={`proposal-card-dashboard ${proposal.status}`}>
+                    <div className="proposal-card-header">
+                      <h4>
+                        Proposal for Trip: {proposal.trip ? `${getLocationDisplay(proposal.trip.startAddress, proposal.trip.startCoordinates)} to ${getLocationDisplay(proposal.trip.endAddress, proposal.trip.endCoordinates)}` : 'N/A'}
+                      </h4>
                       <span className={`status-badge ${proposal.status}`}>
-                        {proposal.status}
+                        {proposal.status.charAt(0).toUpperCase() + proposal.status.slice(1)}
                       </span>
                     </div>
-
-                    <div className="proposal-details">
-                      <p><strong>From:</strong> {proposal.trip ? getLocationDisplay(proposal.trip.startAddress, proposal.trip.startCoordinates) : 'Location not available'}</p>
-                      <p><strong>To:</strong> {proposal.trip ? getLocationDisplay(proposal.trip.endAddress, proposal.trip.endCoordinates) : 'Location not available'}</p>
-                      <p><strong>Pickup Time:</strong> {proposal.trip ? formatDate(proposal.trip.pickupTime) : 'Not specified'}</p>
-                      <p><strong>Delivery Time:</strong> {proposal.trip ? formatDate(proposal.trip.dropTime) : 'Not specified'}</p>
-                      <p><strong>Proposed Price:</strong> ₹{proposal.proposalDetails?.requestedPrice || 'Not specified'}</p>
-                      {proposal.proposalDetails?.message && (
-                        <p><strong>Message:</strong> {proposal.proposalDetails.message}</p>
-                      )}
+                    <div className="proposal-card-body">
+                      <p><strong>Manufacturer:</strong> {proposal.manufacturer?.companyName || 'Unknown'}</p>
+                      <p><strong>Proposed Price:</strong> ₹{proposal.price ? proposal.price.toLocaleString() : 'N/A'}</p>
+                      <p><strong>Message:</strong> {proposal.message || 'No message'}</p>
+                      <p><strong>Received:</strong> {formatDate(proposal.createdAt)}</p>
                     </div>
-
-                    <div className="proposal-actions">
-                      {proposal.status === 'pending' && (
-                        <>
-                          <button
-                            onClick={() => handleAcceptProposal(proposal._id)}
-                            className="accept-btn"
-                          >
-                            Accept
-                          </button>
-                          <button
-                            onClick={() => handleRejectProposal(proposal._id)}
-                            className="reject-btn"
-                          >
-                            Reject
-                          </button>
-                        </>
-                      )}
-                      {(proposal.status === 'pending' || proposal.status === 'cancelled') && (
-                        <button
-                          onClick={() => handleDeleteProposal(proposal._id)}
-                          className="delete-btn"
-                        >
-                          Delete
-                        </button>
-                      )}
+                    <div className="proposal-card-actions">
+                      <button
+                        onClick={() => handleViewProposalDetails(proposal._id)}
+                        className={`details-btn-dashboard ${proposal.status !== 'pending' ? 'view-details-btn-dashboard' : ''}`}
+                      >
+                        {proposal.status === 'pending' ? 'Proposal Details' : 'View Details'}
+                      </button>
                     </div>
                   </div>
                 ))}

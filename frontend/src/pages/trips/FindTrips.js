@@ -19,6 +19,7 @@ const FindTrips = () => {
 
   // Proposal state
   const [proposalMessages, setProposalMessages] = useState({});
+  const [proposalPrices, setProposalPrices] = useState({});
   const [proposalSubmitting, setProposalSubmitting] = useState({});
   const [proposalSuccess, setProposalSuccess] = useState({});
   const [proposalErrors, setProposalErrors] = useState({});
@@ -398,6 +399,14 @@ const FindTrips = () => {
     });
   };
 
+  // Handle proposal price change
+  const handleProposalPriceChange = (tripId, price) => {
+    setProposalPrices({
+      ...proposalPrices,
+      [tripId]: price
+    });
+  };
+
   // Send proposal to driver
   const handleSendProposal = async (tripId, event) => {
     event.preventDefault();
@@ -437,14 +446,22 @@ const FindTrips = () => {
       }
 
       const message = proposalMessages[tripId] || '';
+      const offeredPrice = parseFloat(proposalPrices[tripId]);
+
+      if (isNaN(offeredPrice) || offeredPrice <= 0) {
+        setProposalErrors(prev => ({
+          ...prev,
+          [tripId]: 'Please enter a valid proposed price.'
+        }));
+        setProposalSubmitting(prev => ({ ...prev, [tripId]: false }));
+        return;
+      }
 
       const proposalData = {
         driver: driverId,
         trip: tripId,
-        proposalDetails: {
-          message: message,
-          requestedPrice: trip.price || 0
-        }
+        price: offeredPrice,
+        message: message,
       };
 
       await axios.post(
@@ -459,6 +476,10 @@ const FindTrips = () => {
       }));
 
       setProposalMessages(prev => ({
+        ...prev,
+        [tripId]: ''
+      }));
+      setProposalPrices(prev => ({
         ...prev,
         [tripId]: ''
       }));
@@ -779,10 +800,14 @@ const FindTrips = () => {
                             value={proposalMessages[trip._id] || ''}
                             onChange={(e) => handleProposalMessageChange(trip._id, e.target.value)}
                           />
-
-                          {proposalErrors[trip._id] && (
-                            <div className="proposal-error">{proposalErrors[trip._id]}</div>
-                          )}
+                          <input
+                            type="number"
+                            className="proposal-price"
+                            placeholder="Your Proposed Price (₹)"
+                            value={proposalPrices[trip._id] || ''}
+                            onChange={(e) => handleProposalPriceChange(trip._id, e.target.value)}
+                            required
+                          />
                         </div>
 
                         <button

@@ -11,6 +11,7 @@ import TripForm from './pages/trips/TripForm';
 import FindTrips from './pages/trips/FindTrips';
 import TripProposals from './pages/proposals/TripProposals';
 import MySentProposals from './pages/proposals/MySentProposals';
+import ProposalDetails from './pages/proposals/ProposalDetails';
 import Navbar from './components/Navbar';
 import LandingPage from './pages/LandingPage';
 import './App.css';
@@ -77,6 +78,7 @@ function App() {
                     {/* Proposals routes - with Navbar */}
                     <Route path="/proposals/trip/:tripId" element={<NavbarWrapper><TripProposals /></NavbarWrapper>} />
                     <Route path="/my-proposals" element={<NavbarWrapper><MySentProposals /></NavbarWrapper>} />
+                    <Route path="/proposal/:proposalId/details" element={<NavbarWrapper><ProposalDetails /></NavbarWrapper>} />
                 </Routes>
             </div>
         </Router>
