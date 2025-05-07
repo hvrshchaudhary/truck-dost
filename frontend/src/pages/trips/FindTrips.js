@@ -2,21 +2,13 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
-import 'ol/ol.css';
-import Map from 'ol/Map';
-import View from 'ol/View';
-import TileLayer from 'ol/layer/Tile';
-import OSM from 'ol/source/OSM';
-import { fromLonLat, toLonLat } from 'ol/proj';
-import { Point } from 'ol/geom';
-import Feature from 'ol/Feature';
-import { Vector as VectorLayer } from 'ol/layer';
-import { Vector as VectorSource } from 'ol/source';
-import { Style, Circle, Fill, Stroke } from 'ol/style';
-import { defaults as defaultControls } from 'ol/control';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import './FindTrips.css';
+import '../../styles/map.css';
 
 const API_URL = 'http://localhost:5001';
+mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
 
 const FindTrips = () => {
   const navigate = useNavigate();
@@ -39,6 +31,8 @@ const FindTrips = () => {
     endLongitude: '',
     startLocationName: '',
     endLocationName: '',
+    _geocodedStartName: '',
+    _geocodedEndName: ''
   });
 
   // Map related state
@@ -56,130 +50,97 @@ const FindTrips = () => {
   });
 
   // Refs for map elements
-  const mapRef = useRef(null);
+  const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
-  const vectorSourceRef = useRef(null);
+  const pickupMarkerRef = useRef(null);
+  const deliveryMarkerRef = useRef(null);
 
-  // Define updateMarker before it's used
+  // Define updateMarker
   const updateMarker = useCallback((lng, lat, locationType) => {
-    if (!vectorSourceRef.current) return;
+    if (!mapInstanceRef.current) return;
 
-    const features = vectorSourceRef.current.getFeatures();
-    features.forEach(feature => {
-      if (feature.get('locationType') === locationType) {
-        vectorSourceRef.current.removeFeature(feature);
-      }
-    });
+    const markerOptions = {
+        color: locationType === 'pickup' ? '#4CAF50' : '#F44336',
+        draggable: false
+    };
 
-    const marker = new Feature({
-      geometry: new Point(fromLonLat([lng, lat])),
-      name: `${locationType} marker`
-    });
-
-    marker.set('locationType', locationType);
-    vectorSourceRef.current.addFeature(marker);
+    if (locationType === 'pickup') {
+      if (pickupMarkerRef.current) pickupMarkerRef.current.remove();
+      pickupMarkerRef.current = new mapboxgl.Marker(markerOptions)
+        .setLngLat([lng, lat])
+        .addTo(mapInstanceRef.current);
+    } else if (locationType === 'delivery') {
+      if (deliveryMarkerRef.current) deliveryMarkerRef.current.remove();
+      deliveryMarkerRef.current = new mapboxgl.Marker(markerOptions)
+        .setLngLat([lng, lat])
+        .addTo(mapInstanceRef.current);
+    }
   }, []);
 
-  // Define reverseGeocode before it's used
-  const reverseGeocode = useCallback(async (lng, lat, addressField) => {
+  // Define reverseGeocode
+  const reverseGeocode = useCallback(async (lng, lat, addressDisplayField) => {
     try {
-      // Show loading state
-      setFormData(prev => ({
-        ...prev,
-        [addressField]: 'Fetching address...'
-      }));
-
-      // Use OpenStreetMap's Nominatim API to get address from coordinates
+      setFormData(prev => ({ ...prev, [addressDisplayField]: 'Fetching address...' }));
       const response = await axios.get(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`,
-        {
-          headers: {
-            'Accept-Language': 'en',
-            'User-Agent': 'TruckDost-App'
-          }
-        }
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&types=address,poi,place,locality,region,country`
       );
-
-      if (response.data && response.data.display_name) {
-        // Format the address nicely
-        const addressData = response.data.address;
-        let formattedAddress = '';
-
-        // Create a descriptive address with nearby landmarks if available
-        if (addressData.road || addressData.amenity || addressData.building) {
-          formattedAddress += (addressData.road || addressData.amenity || addressData.building) + ', ';
-        }
-
-        if (addressData.suburb || addressData.neighbourhood) {
-          formattedAddress += (addressData.suburb || addressData.neighbourhood) + ', ';
-        }
-
-        if (addressData.city || addressData.town || addressData.village) {
-          formattedAddress += (addressData.city || addressData.town || addressData.village) + ', ';
-        }
-
-        if (addressData.state) {
-          formattedAddress += addressData.state;
-        }
-
-        if (addressData.postcode) {
-          formattedAddress += ' - ' + addressData.postcode;
-        }
-
-        // If formatted address is empty or too short, fall back to display_name
-        if (formattedAddress.length < 10) {
-          formattedAddress = response.data.display_name;
-        }
-
-        setFormData(prev => ({
-          ...prev,
-          [addressField]: formattedAddress
-        }));
+      if (response.data && response.data.features && response.data.features.length > 0) {
+        const placeName = response.data.features[0].place_name;
+        setFormData(prev => ({ ...prev, [addressDisplayField]: placeName }));
       } else {
-        // Fallback to coordinate-based address if no result
-        setFormData(prev => ({
-          ...prev,
-          [addressField]: `Location at [${lng.toFixed(6)}, ${lat.toFixed(6)}]`
-        }));
+        setFormData(prev => ({ ...prev, [addressDisplayField]: `Location at [${lng.toFixed(6)}, ${lat.toFixed(6)}]` }));
       }
     } catch (err) {
       console.error('Error in reverse geocoding:', err);
-      setFormData(prev => ({
-        ...prev,
-        [addressField]: `Location at [${lng.toFixed(6)}, ${lat.toFixed(6)}]`
-      }));
+      setFormData(prev => ({ ...prev, [addressDisplayField]: `Location at [${lng.toFixed(6)}, ${lat.toFixed(6)}]` }));
+      if (err.response && err.response.status === 401) {
+        alert("Failed to fetch address: Invalid Mapbox Access Token.");
+      }
     }
   }, []);
 
-  // Define handleMapClick after its dependencies
-  const handleMapClick = useCallback((coords) => {
-    if (!activeLocation) return;
+  // Define handleMapClick
+  const handleMapClick = useCallback((event) => {
+    if (!activeLocation || !mapInstanceRef.current) return;
 
-    const { longitude, latitude } = coords;
+    const { lng, lat } = event.lngLat;
+    const currentZoom = mapInstanceRef.current.getZoom(); // Get current zoom level
 
     setMapMarkers(prev => ({
       ...prev,
-      [activeLocation]: { longitude, latitude }
+      [activeLocation]: { longitude: lng, latitude: lat }
     }));
 
+    // Update formData based on activeLocation and call reverseGeocode with the correct field name
     if (activeLocation === 'pickup') {
       setFormData(prev => ({
         ...prev,
-        startLongitude: longitude.toFixed(6),
-        startLatitude: latitude.toFixed(6)
+        startLongitude: lng.toFixed(6),
+        startLatitude: lat.toFixed(6),
+        // startLocationName: 'Fetching address...' // Optionally set a fetching message here
       }));
-      reverseGeocode(longitude, latitude, 'startLocationName');
+      reverseGeocode(lng, lat, 'startLocationName'); // Update startLocationName directly
     } else if (activeLocation === 'delivery') {
       setFormData(prev => ({
         ...prev,
-        endLongitude: longitude.toFixed(6),
-        endLatitude: latitude.toFixed(6)
+        endLongitude: lng.toFixed(6),
+        endLatitude: lat.toFixed(6),
+        // endLocationName: 'Fetching address...' // Optionally set a fetching message here
       }));
-      reverseGeocode(longitude, latitude, 'endLocationName');
+      reverseGeocode(lng, lat, 'endLocationName'); // Update endLocationName directly
     }
 
-    updateMarker(longitude, latitude, activeLocation);
-  }, [activeLocation, updateMarker, reverseGeocode]);
+    // Update the marker on the map
+    updateMarker(lng, lat, activeLocation);
+
+    // Crucially, update viewState to keep the map centered on the new selection
+    setViewState({
+      longitude: lng,
+      latitude: lat,
+      zoom: currentZoom > 10 ? currentZoom : 14 // Maintain current zoom or set a reasonable default
+    });
+
+  }, [activeLocation, updateMarker, reverseGeocode, setViewState /* ensure setViewState is in dep array if from context/props */]);
 
   // Check authentication
   useEffect(() => {
@@ -205,97 +166,69 @@ const FindTrips = () => {
 
   // Initialize and cleanup map
   useEffect(() => {
-    if (showMap && mapRef.current && !mapInstanceRef.current) {
-      vectorSourceRef.current = new VectorSource();
-      const vectorLayer = new VectorLayer({
-        source: vectorSourceRef.current,
-        style: (feature) => {
-          const locationType = feature.get('locationType');
-          return new Style({
-            image: new Circle({
-              radius: 8,
-              fill: new Fill({
-                color: locationType === 'pickup' ? '#4CAF50' : '#F44336'
-              }),
-              stroke: new Stroke({
-                color: 'white',
-                width: 2
-              })
-            })
-          });
+    if (showMap && mapContainerRef.current && !mapInstanceRef.current) {
+      mapInstanceRef.current = new mapboxgl.Map({
+        container: mapContainerRef.current,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [viewState.longitude, viewState.latitude],
+        zoom: viewState.zoom
+      });
+      mapInstanceRef.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+      const geolocate = new mapboxgl.GeolocateControl({
+        positionOptions: { enableHighAccuracy: true },
+        trackUserLocation: true,
+        showUserHeading: true,
+        showUserLocation: true
+      });
+      mapInstanceRef.current.addControl(geolocate, 'top-right');
+
+      geolocate.on('geolocate', (e) => {
+        const lng = e.coords.longitude;
+        const lat = e.coords.latitude;
+        const newZoom = 15; // Define a consistent zoom level for geolocation
+
+        // Update viewState to keep it consistent with the geolocated position
+        setViewState({
+          longitude: lng,
+          latitude: lat,
+          zoom: newZoom
+        });
+        
+        // Fly to the new location
+        mapInstanceRef.current.flyTo({ center: [lng, lat], zoom: newZoom });
+
+        if (activeLocation) {
+          const simulatedEvent = { lngLat: { lng, lat } };
+          handleMapClick(simulatedEvent);
         }
       });
 
-      mapInstanceRef.current = new Map({
-        target: mapRef.current,
-        layers: [
-          new TileLayer({
-            source: new OSM()
-          }),
-          vectorLayer
-        ],
-        controls: defaultControls(),
-        view: new View({
-          center: fromLonLat([viewState.longitude, viewState.latitude]),
-          zoom: viewState.zoom
-        })
-      });
+      mapInstanceRef.current.on('click', handleMapClick);
 
-      mapInstanceRef.current.on('click', (evt) => {
-        if (!activeLocation) return;
-
-        const coords = mapInstanceRef.current.getCoordinateFromPixel(evt.pixel);
-        const lonLat = toLonLat(coords);
-
-        handleMapClick({
-          longitude: lonLat[0],
-          latitude: lonLat[1]
-        });
-      });
-
-      if (activeLocation === 'pickup' && mapMarkers.pickup) {
-        updateMarker(
-          mapMarkers.pickup.longitude,
-          mapMarkers.pickup.latitude,
-          'pickup'
-        );
-      } else if (activeLocation === 'delivery' && mapMarkers.delivery) {
-        updateMarker(
-          mapMarkers.delivery.longitude,
-          mapMarkers.delivery.latitude,
-          'delivery'
-        );
+      if (mapMarkers.pickup) {
+        updateMarker(mapMarkers.pickup.longitude, mapMarkers.pickup.latitude, 'pickup');
+      }
+      if (mapMarkers.delivery) {
+        updateMarker(mapMarkers.delivery.longitude, mapMarkers.delivery.latitude, 'delivery');
       }
     }
-
     return () => {
       if (mapInstanceRef.current) {
-        mapInstanceRef.current.setTarget(undefined);
+        mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
-        vectorSourceRef.current = null;
+        pickupMarkerRef.current = null;
+        deliveryMarkerRef.current = null;
       }
     };
-  }, [
-    showMap,
-    activeLocation,
-    mapMarkers.pickup,
-    mapMarkers.delivery,
-    viewState.latitude,
-    viewState.longitude,
-    viewState.zoom,
-    handleMapClick,
-    updateMarker
-  ]);
+  }, [showMap, viewState.longitude, viewState.latitude, viewState.zoom, activeLocation, handleMapClick, updateMarker, mapMarkers.pickup, mapMarkers.delivery]);
 
   // Update map center when viewState changes
   useEffect(() => {
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.getView().setCenter(
-        fromLonLat([viewState.longitude, viewState.latitude])
-      );
-      mapInstanceRef.current.getView().setZoom(viewState.zoom);
+    if (mapInstanceRef.current && showMap) {
+      mapInstanceRef.current.setCenter([viewState.longitude, viewState.latitude]);
+      mapInstanceRef.current.setZoom(viewState.zoom);
     }
-  }, [viewState]);
+  }, [viewState, showMap]);
 
   const handleChange = (e) => {
     setFormData({
@@ -310,52 +243,34 @@ const FindTrips = () => {
     setErrorMsg('');
     setSearchResults([]);
 
+    // Ensure coordinates are numbers before sending
+    const startLat = parseFloat(formData.startLatitude);
+    const startLng = parseFloat(formData.startLongitude);
+    const endLat = parseFloat(formData.endLatitude);
+    const endLng = parseFloat(formData.endLongitude);
+
+    if (isNaN(startLat) || isNaN(startLng) || isNaN(endLat) || isNaN(endLng)) {
+      setErrorMsg('Valid coordinates are required for searching. Please select on map or use address search.');
+      setLoading(false);
+      return;
+    }
+
     try {
-      // Validate coordinates
-      const startLat = parseFloat(formData.startLatitude);
-      const startLng = parseFloat(formData.startLongitude);
-      const endLat = parseFloat(formData.endLatitude);
-      const endLng = parseFloat(formData.endLongitude);
-
-      if (isNaN(startLat) || isNaN(startLng) || isNaN(endLat) || isNaN(endLng)) {
-        throw new Error('Please enter valid coordinates');
-      }
-
       const token = localStorage.getItem('token');
-      const config = {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      };
-
-      // Make API call to search for trips
+      const config = { headers: { 'Authorization': `Bearer ${token}` } };
       const response = await axios.get(
         `${API_URL}/api/trips/near-route`,
         {
           params: {
-            startLatitude: formData.startLatitude,
-            startLongitude: formData.startLongitude,
-            endLatitude: formData.endLatitude,
-            endLongitude: formData.endLongitude
+            startLatitude: startLat,
+            startLongitude: startLng,
+            endLatitude: endLat,
+            endLongitude: endLng
           },
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+          headers: { 'Authorization': `Bearer ${token}` }
         }
       );
-
-      console.log('Search results:', response.data);
-
-      // Check if each trip has a driver object
-      const trips = response.data.map(trip => {
-        if (!trip.driver) {
-          console.warn(`Trip ${trip._id} has no driver information`);
-        } else {
-          console.log(`Trip ${trip._id} has driver:`, trip.driver);
-        }
-        return trip;
-      });
-
+      const trips = response.data.map(trip => ({ ...trip, driver: trip.driver || {} }));
       setSearchResults(trips);
       setSearchPerformed(true);
     } catch (err) {
@@ -374,56 +289,75 @@ const FindTrips = () => {
   const openLocationSelector = (locationType) => {
     setActiveLocation(locationType);
     setShowMap(true);
+    
+    // Try to get user's current location first
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { longitude, latitude } = position.coords;
+          // If map is already initialized, fly to the location
+          if (mapInstanceRef.current) {
+            mapInstanceRef.current.flyTo({ 
+              center: [longitude, latitude], 
+              zoom: 14, 
+              essential: true
+            });
+          } else {
+            // Otherwise, set view state for initialization
+            setViewState({
+              longitude,
+              latitude,
+              zoom: 14
+            });
+          }
+        },
+        (error) => {
+          console.log("Error getting location:", error.message);
+          // Fall back to existing marker or default view
+          setExistingOrDefaultLocation(locationType);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    } else {
+      setExistingOrDefaultLocation(locationType);
+    }
+  };
+  
+  // Helper function to use existing marker location or default to India
+  const setExistingOrDefaultLocation = (locationType) => {
+    let targetLng = viewState.longitude;
+    let targetLat = viewState.latitude;
+    let targetZoom = viewState.zoom;
 
-    // If we already have coordinates for this location type, center the map there
     if (locationType === 'pickup' && mapMarkers.pickup) {
-      setViewState({
-        longitude: mapMarkers.pickup.longitude,
-        latitude: mapMarkers.pickup.latitude,
-        zoom: 13
-      });
+      targetLng = mapMarkers.pickup.longitude;
+      targetLat = mapMarkers.pickup.latitude;
+      targetZoom = 13;
     } else if (locationType === 'delivery' && mapMarkers.delivery) {
-      setViewState({
-        longitude: mapMarkers.delivery.longitude,
-        latitude: mapMarkers.delivery.latitude,
-        zoom: 13
-      });
+      targetLng = mapMarkers.delivery.longitude;
+      targetLat = mapMarkers.delivery.latitude;
+      targetZoom = 13;
+    } else {
+      // Default to India if no markers
+      targetLng = 78.9629;
+      targetLat = 20.5937;
+      targetZoom = 4;
+    }
+    
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.flyTo({ center: [targetLng, targetLat], zoom: targetZoom });
+    } else {
+      setViewState({ longitude: targetLng, latitude: targetLat, zoom: targetZoom });
     }
   };
 
-  // Get current location using browser's geolocation API
+  // Get current location using browser's geolocation API - Replaced by Mapbox GeolocateControl
   const getCurrentLocation = () => {
-    if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your browser');
+    if (!activeLocation) {
+      alert('Please first specify if you are selecting a pickup or delivery location.');
       return;
     }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-
-        // Update map view
-        setViewState({
-          longitude: lng,
-          latitude: lat,
-          zoom: 15
-        });
-
-        // Update marker
-        if (activeLocation) {
-          handleMapClick({
-            longitude: lng,
-            latitude: lat
-          });
-        }
-      },
-      (error) => {
-        console.error('Error getting location:', error);
-        alert(`Error getting your location: ${error.message}`);
-      },
-      { enableHighAccuracy: true }
-    );
+    alert("Please use the 'My Location' button directly on the map (top-right corner).");
   };
 
   // Close map and confirm location selection
@@ -566,6 +500,112 @@ const FindTrips = () => {
     return driver._id || null;
   };
 
+  // Forward geocode address and then submit search
+  const handleAddressSearch = async () => {
+    setLoading(true);
+    setErrorMsg('');
+    setSearchResults([]);
+
+    if (!formData.startLocationName && (!formData.startLatitude || !formData.startLongitude)) {
+        setErrorMsg('Please provide a starting location (address or coordinates).');
+        setLoading(false);
+        return;
+    }
+    if (!formData.endLocationName && (!formData.endLatitude || !formData.endLongitude)) {
+        setErrorMsg('Please provide a destination location (address or coordinates).');
+        setLoading(false);
+        return;
+    }
+
+    let startCoords = { lat: parseFloat(formData.startLatitude), lng: parseFloat(formData.startLongitude) };
+    let endCoords = { lat: parseFloat(formData.endLatitude), lng: parseFloat(formData.endLongitude) };
+    let geocodedStartName = formData._geocodedStartName || '';
+    let geocodedEndName = formData._geocodedEndName || '';
+
+    try {
+        // Geocode start location if address is provided and no valid coordinates yet
+        if (formData.startLocationName && (isNaN(startCoords.lat) || isNaN(startCoords.lng))) {
+            const startResponse = await axios.get(
+                `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(formData.startLocationName)}.json?access_token=${mapboxgl.accessToken}&country=IN&limit=1` // Limit to India, take first result
+            );
+            if (startResponse.data && startResponse.data.features && startResponse.data.features.length > 0) {
+                const { center, place_name } = startResponse.data.features[0];
+                startCoords = { lng: center[0], lat: center[1] };
+                geocodedStartName = place_name;
+                setFormData(prev => ({
+                    ...prev,
+                    startLongitude: center[0].toFixed(6),
+                    startLatitude: center[1].toFixed(6),
+                    _geocodedStartName: place_name
+                }));
+                if (showMap) updateMarker(center[0], center[1], 'pickup');
+            } else {
+                throw new Error(`Could not find coordinates for start location: ${formData.startLocationName}`);
+            }
+        }
+
+        // Geocode end location if address is provided and no valid coordinates yet
+        if (formData.endLocationName && (isNaN(endCoords.lat) || isNaN(endCoords.lng))) {
+            const endResponse = await axios.get(
+                `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(formData.endLocationName)}.json?access_token=${mapboxgl.accessToken}&country=IN&limit=1` // Limit to India
+            );
+            if (endResponse.data && endResponse.data.features && endResponse.data.features.length > 0) {
+                const { center, place_name } = endResponse.data.features[0];
+                endCoords = { lng: center[0], lat: center[1] };
+                geocodedEndName = place_name;
+                setFormData(prev => ({
+                    ...prev,
+                    endLongitude: center[0].toFixed(6),
+                    endLatitude: center[1].toFixed(6),
+                    _geocodedEndName: place_name
+                }));
+                 if (showMap) updateMarker(center[0], center[1], 'delivery');
+            } else {
+                throw new Error(`Could not find coordinates for end location: ${formData.endLocationName}`);
+            }
+        }
+        
+        // Center map on midpoint if both geocoded successfully
+        if (startCoords.lng && startCoords.lat && endCoords.lng && endCoords.lat && mapInstanceRef.current && showMap) {
+            const bounds = new mapboxgl.LngLatBounds();
+            bounds.extend([startCoords.lng, startCoords.lat]);
+            bounds.extend([endCoords.lng, endCoords.lat]);
+            mapInstanceRef.current.fitBounds(bounds, { padding: 50, maxZoom: 12 });
+        }
+
+        // After geocoding (if necessary), proceed with the existing search logic but using potentially updated coords
+        if (isNaN(startCoords.lat) || isNaN(startCoords.lng) || isNaN(endCoords.lat) || isNaN(endCoords.lng)) {
+            throw new Error('Valid coordinates could not be determined for search.');
+        }
+
+        const token = localStorage.getItem('token');
+        const config = { headers: { 'Authorization': `Bearer ${token}` } };
+        const response = await axios.get(
+            `${API_URL}/api/trips/near-route`,
+            {
+                params: {
+                    startLatitude: startCoords.lat,
+                    startLongitude: startCoords.lng,
+                    endLatitude: endCoords.lat,
+                    endLongitude: endCoords.lng
+                },
+                headers: { 'Authorization': `Bearer ${token}` }
+            }
+        );
+        const trips = response.data.map(trip => ({ ...trip, driver: trip.driver || {} }));
+        setSearchResults(trips);
+        setSearchPerformed(true);
+
+    } catch (err) {
+        console.error('Error during address search or trip finding:', err);
+        setErrorMsg(err.message || 'Failed to search for trips using address.');
+        setSearchPerformed(true); // To show no results message
+        setSearchResults([]);
+    } finally {
+        setLoading(false);
+    }
+  };
+
   return (
     <div className="find-trips-page">
       <header className="find-trips-header">
@@ -583,18 +623,9 @@ const FindTrips = () => {
           </div>
           <div className="map-container">
             <div
-              ref={mapRef}
+              ref={mapContainerRef}
               style={{ width: '100%', height: '400px' }}
             ></div>
-            <div className="map-controls">
-              <button
-                className="geolocate-btn"
-                onClick={getCurrentLocation}
-                title="Use your current location"
-              >
-                <span role="img" aria-label="Location">📍</span> My Location
-              </button>
-            </div>
           </div>
           <div className="map-actions">
             <p className="map-instruction">Click on the map to select a location</p>
@@ -609,89 +640,57 @@ const FindTrips = () => {
       )}
 
       <div className="search-container">
-        <form onSubmit={handleSubmit} className="search-form">
+        <form onSubmit={(e) => { e.preventDefault(); handleAddressSearch(); }} className="search-form">
           <div className="form-header">
             <h2>Search Parameters</h2>
-            <p>Enter your pickup and delivery locations to find nearby trips</p>
+            <p>Enter pickup and delivery addresses or select on map / use coordinates.</p>
           </div>
 
           <div className="location-inputs">
             <div className="location-group">
-              <label>Pickup Location</label>
-              <div className="coords-group">
-                <input
-                  type="text"
-                  name="startLatitude"
-                  placeholder="Latitude"
-                  value={formData.startLatitude}
-                  onChange={handleChange}
-                  required
-                />
-                <input
-                  type="text"
-                  name="startLongitude"
-                  placeholder="Longitude"
-                  value={formData.startLongitude}
-                  onChange={handleChange}
-                  required
-                />
+              <label htmlFor="startLocationName">Pickup Location Address</label>
+              <div className="map-selection">
+                <div className="address-display">
+                  {formData.startLocationName ? (
+                    <div className="selected-address">{formData.startLocationName}</div>
+                  ) : (
+                    <div className="no-address-selected">No starting point selected</div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  className="location-btn"
+                  onClick={() => openLocationSelector('pickup')}
+                >
+                  Select from Map
+                </button>
               </div>
-              <input
-                type="text"
-                name="startLocationName"
-                placeholder="Location Name (Optional)"
-                value={formData.startLocationName}
-                onChange={handleChange}
-              />
-              <button
-                type="button"
-                className="map-button"
-                onClick={() => openLocationSelector('pickup')}
-              >
-                Select on Map
-              </button>
             </div>
 
             <div className="location-group">
-              <label>Delivery Location</label>
-              <div className="coords-group">
-                <input
-                  type="text"
-                  name="endLatitude"
-                  placeholder="Latitude"
-                  value={formData.endLatitude}
-                  onChange={handleChange}
-                  required
-                />
-                <input
-                  type="text"
-                  name="endLongitude"
-                  placeholder="Longitude"
-                  value={formData.endLongitude}
-                  onChange={handleChange}
-                  required
-                />
+              <label htmlFor="endLocationName">Delivery Location Address</label>
+              <div className="map-selection">
+                <div className="address-display">
+                  {formData.endLocationName ? (
+                    <div className="selected-address">{formData.endLocationName}</div>
+                  ) : (
+                    <div className="no-address-selected">No destination selected</div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  className="location-btn"
+                  onClick={() => openLocationSelector('delivery')}
+                >
+                  Select from Map
+                </button>
               </div>
-              <input
-                type="text"
-                name="endLocationName"
-                placeholder="Location Name (Optional)"
-                value={formData.endLocationName}
-                onChange={handleChange}
-              />
-              <button
-                type="button"
-                className="map-button"
-                onClick={() => openLocationSelector('delivery')}
-              >
-                Select on Map
-              </button>
             </div>
           </div>
 
           <div className="form-actions">
             <button type="submit" className="search-btn" disabled={loading}>
-              {loading ? 'Searching...' : 'Search for Trips'}
+              {loading ? 'Searching...' : 'Search for Trips by Address/Coords'}
             </button>
           </div>
         </form>

@@ -2,19 +2,21 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
-import 'ol/ol.css';
-import Map from 'ol/Map';
-import View from 'ol/View';
-import TileLayer from 'ol/layer/Tile';
-import OSM from 'ol/source/OSM';
-import { fromLonLat, toLonLat } from 'ol/proj';
-import { Point } from 'ol/geom';
-import Feature from 'ol/Feature';
-import { Vector as VectorLayer } from 'ol/layer';
-import { Vector as VectorSource } from 'ol/source';
-import { Style, Circle, Fill, Stroke } from 'ol/style';
-import { defaults as defaultControls } from 'ol/control';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import './TripForm.css';
+import '../../styles/map.css';
+
+// Ensure your Mapbox token is set in your .env file as REACT_APP_MAPBOX_TOKEN
+const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN;
+
+if (!MAPBOX_TOKEN) {
+  console.error('Mapbox token is missing! Please set REACT_APP_MAPBOX_TOKEN in your .env file');
+  // You could throw an error here or display a more user-friendly message on the page
+  // For now, an alert will make it obvious during development if the token is missing.
+  alert('Mapbox access token is not configured. Please check the console and ensure REACT_APP_MAPBOX_TOKEN is set in your .env file in the frontend directory and restart the server.');
+}
+mapboxgl.accessToken = MAPBOX_TOKEN;
 
 const TripForm = () => {
   const navigate = useNavigate();
@@ -46,9 +48,10 @@ const TripForm = () => {
   });
 
   // Refs for map elements
-  const mapRef = useRef(null);
+  const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
-  const vectorSourceRef = useRef(null);
+  const startMarkerRef = useRef(null);
+  const endMarkerRef = useRef(null);
 
   // Check authentication
   useEffect(() => {
@@ -108,173 +111,126 @@ const TripForm = () => {
 
   // Define handleMapClick function before it's used in useEffect
   const handleMapClick = (event) => {
-    if (!activeLocation) return;
+    if (!activeLocation || !mapInstanceRef.current) return;
 
     const { lng, lat } = event.lngLat;
 
     if (activeLocation === 'start') {
-      // Update form data
-      setFormData(prev => ({
-        ...prev,
-        startCoordinates: [lng, lat]
-      }));
-
-      // Update marker state
-      setMapMarkers(prev => ({
-        ...prev,
-        start: {
-          longitude: lng,
-          latitude: lat
-        }
-      }));
-
-      // Get address from coordinates
+      setFormData(prev => ({ ...prev, startCoordinates: [lng, lat] }));
+      setMapMarkers(prev => ({ ...prev, start: { longitude: lng, latitude: lat } }));
+      updateMarker(lng, lat, 'start');
       reverseGeocode(lng, lat, 'startAddress');
     } else {
-      // Update form data
-      setFormData(prev => ({
-        ...prev,
-        endCoordinates: [lng, lat]
-      }));
-
-      // Update marker state
-      setMapMarkers(prev => ({
-        ...prev,
-        end: {
-          longitude: lng,
-          latitude: lat
-        }
-      }));
-
-      // Get address from coordinates
+      setFormData(prev => ({ ...prev, endCoordinates: [lng, lat] }));
+      setMapMarkers(prev => ({ ...prev, end: { longitude: lng, latitude: lat } }));
+      updateMarker(lng, lat, 'end');
       reverseGeocode(lng, lat, 'endAddress');
     }
   };
 
   // Initialize and cleanup map
   useEffect(() => {
-    if (showMap && mapRef.current && !mapInstanceRef.current) {
-      // Create vector source and layer for markers
-      vectorSourceRef.current = new VectorSource();
-      const vectorLayer = new VectorLayer({
-        source: vectorSourceRef.current,
-        style: (feature) => {
-          const locationType = feature.get('locationType');
-          return new Style({
-            image: new Circle({
-              radius: 8,
-              fill: new Fill({
-                color: locationType === 'start' ? '#4CAF50' : '#F44336'
-              }),
-              stroke: new Stroke({
-                color: 'white',
-                width: 2
-              })
-            })
-          });
+    if (showMap && mapContainerRef.current && !mapInstanceRef.current) {
+      mapInstanceRef.current = new mapboxgl.Map({
+        container: mapContainerRef.current,
+        style: 'mapbox://styles/mapbox/streets-v12', // Standard Mapbox street style
+        center: [viewState.longitude, viewState.latitude],
+        zoom: viewState.zoom
+      });
+
+      // Add navigation control (zoom buttons, compass)
+      mapInstanceRef.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+      // Add geolocate control
+      const geolocate = new mapboxgl.GeolocateControl({
+        positionOptions: {
+          enableHighAccuracy: true
+        },
+        trackUserLocation: true, // Continuously track user location
+        showUserHeading: true,   // Show user heading icon
+        showUserLocation: true
+      });
+      mapInstanceRef.current.addControl(geolocate, 'top-right');
+
+      // Geolocate event to update form when location is found via control
+      geolocate.on('geolocate', (e) => {
+        const lng = e.coords.longitude;
+        const lat = e.coords.latitude;
+        
+        // Update map view to the geolocated position
+        mapInstanceRef.current.flyTo({ center: [lng, lat], zoom: 15 });
+
+        if (activeLocation) {
+           // Programmatically call handleMapClick logic
+          if (activeLocation === 'start') {
+            setFormData(prev => ({ ...prev, startCoordinates: [lng, lat] }));
+            setMapMarkers(prev => ({ ...prev, start: { longitude: lng, latitude: lat } }));
+            updateMarker(lng, lat, 'start');
+            reverseGeocode(lng, lat, 'startAddress');
+          } else {
+            setFormData(prev => ({ ...prev, endCoordinates: [lng, lat] }));
+            setMapMarkers(prev => ({ ...prev, end: { longitude: lng, latitude: lat } }));
+            updateMarker(lng, lat, 'end');
+            reverseGeocode(lng, lat, 'endAddress');
+          }
         }
       });
+      
+      mapInstanceRef.current.on('click', handleMapClick);
 
-      // Create map
-      mapInstanceRef.current = new Map({
-        target: mapRef.current,
-        layers: [
-          new TileLayer({
-            source: new OSM()
-          }),
-          vectorLayer
-        ],
-        controls: defaultControls(),
-        view: new View({
-          center: fromLonLat([viewState.longitude, viewState.latitude]),
-          zoom: viewState.zoom
-        })
-      });
-
-      // Add click event handler
-      mapInstanceRef.current.on('click', (evt) => {
-        if (!activeLocation) return;
-
-        const coords = mapInstanceRef.current.getCoordinateFromPixel(evt.pixel);
-        const lonLat = toLonLat(coords);
-
-        // Use the handleMapClick function with the converted coordinates
-        handleMapClick({
-          lngLat: {
-            lng: lonLat[0],
-            lat: lonLat[1]
-          }
-        });
-
-        // Update the marker on the map
-        updateMarker(lonLat[0], lonLat[1], activeLocation);
-      });
-
-      // Add existing marker if any
-      if (activeLocation === 'start' && mapMarkers.start) {
-        updateMarker(
-          mapMarkers.start.longitude,
-          mapMarkers.start.latitude,
-          'start'
-        );
-      } else if (activeLocation === 'end' && mapMarkers.end) {
-        updateMarker(
-          mapMarkers.end.longitude,
-          mapMarkers.end.latitude,
-          'end'
-        );
+      // Re-add existing markers if they exist when map loads
+      if (mapMarkers.start) {
+        updateMarker(mapMarkers.start.longitude, mapMarkers.start.latitude, 'start');
+      }
+      if (mapMarkers.end) {
+        updateMarker(mapMarkers.end.longitude, mapMarkers.end.latitude, 'end');
       }
     }
 
     // Cleanup
     return () => {
       if (mapInstanceRef.current) {
-        mapInstanceRef.current.setTarget(undefined);
+        mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
-        vectorSourceRef.current = null;
+        // No need to manually remove markers from map, map.remove() handles it.
+        startMarkerRef.current = null;
+        endMarkerRef.current = null;
       }
     };
-  }, [
-    showMap,
-    activeLocation,
-    mapMarkers.start,
-    mapMarkers.end,
-    viewState.latitude,
-    viewState.longitude,
-    viewState.zoom,
-    handleMapClick
-  ]);
+  }, [showMap, viewState.longitude, viewState.latitude, viewState.zoom, activeLocation]);
 
-  // Update map center when viewState changes
+  // Update map center and zoom when viewState changes
   useEffect(() => {
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.getView().setCenter(
-        fromLonLat([viewState.longitude, viewState.latitude])
-      );
-      mapInstanceRef.current.getView().setZoom(viewState.zoom);
+    if (mapInstanceRef.current && showMap) { // Only update if map is visible
+      mapInstanceRef.current.setCenter([viewState.longitude, viewState.latitude]);
+      mapInstanceRef.current.setZoom(viewState.zoom);
     }
-  }, [viewState]);
+  }, [viewState, showMap]);
 
   // Function to update marker on the map
   const updateMarker = (lng, lat, locationType) => {
-    if (!vectorSourceRef.current) return;
+    if (!mapInstanceRef.current) return;
 
-    // Clear existing markers of the same type
-    const features = vectorSourceRef.current.getFeatures();
-    features.forEach(feature => {
-      if (feature.get('locationType') === locationType) {
-        vectorSourceRef.current.removeFeature(feature);
+    const markerOptions = {
+        color: locationType === 'start' ? '#4CAF50' : '#F44336', // Green for start, Red for end
+        draggable: false // Markers are not draggable by default
+    };
+
+    if (locationType === 'start') {
+      if (startMarkerRef.current) {
+        startMarkerRef.current.remove();
       }
-    });
-
-    // Add new marker
-    const marker = new Feature({
-      geometry: new Point(fromLonLat([lng, lat])),
-      name: `${locationType} marker`
-    });
-
-    marker.set('locationType', locationType);
-    vectorSourceRef.current.addFeature(marker);
+      startMarkerRef.current = new mapboxgl.Marker(markerOptions)
+        .setLngLat([lng, lat])
+        .addTo(mapInstanceRef.current);
+    } else if (locationType === 'end') {
+      if (endMarkerRef.current) {
+        endMarkerRef.current.remove();
+      }
+      endMarkerRef.current = new mapboxgl.Marker(markerOptions)
+        .setLngLat([lng, lat])
+        .addTo(mapInstanceRef.current);
+    }
   };
 
   const handleChange = (e) => {
@@ -287,61 +243,92 @@ const TripForm = () => {
     }));
   };
 
+  // handleCoordinateChange can be removed if no longer called directly or indirectly.
+  // For now, let's comment it out to ensure no unexpected breakages if formData coordinates are still set programmatically elsewhere.
+  /*
   const handleCoordinateChange = (e, type, index) => {
     const { value } = e.target;
     const newValue = value === '' ? 0 : parseFloat(value);
 
+    let newLng, newLat;
+    let updatedCoords = {};
+
     setFormData(prevState => {
       const newCoordinates = [...prevState[type]];
       newCoordinates[index] = newValue;
-      return {
-        ...prevState,
-        [type]: newCoordinates
-      };
+
+      if (type === 'startCoordinates') {
+        newLng = index === 0 ? newValue : prevState.startCoordinates[0];
+        newLat = index === 1 ? newValue : prevState.startCoordinates[1];
+        updatedCoords = { start: { longitude: newLng, latitude: newLat } };
+      } else if (type === 'endCoordinates') {
+        newLng = index === 0 ? newValue : prevState.endCoordinates[0];
+        newLat = index === 1 ? newValue : prevState.endCoordinates[1];
+        updatedCoords = { end: { longitude: newLng, latitude: newLat } };
+      }
+      return { ...prevState, [type]: newCoordinates };
     });
 
-    // Update marker on the map if coordinates are changed manually
-    if (type === 'startCoordinates') {
-      setMapMarkers(prev => ({
-        ...prev,
-        start: {
-          longitude: index === 0 ? newValue : prev.start?.longitude,
-          latitude: index === 1 ? newValue : prev.start?.latitude
-        }
-      }));
+    setMapMarkers(prev => ({ ...prev, ...updatedCoords }));
 
-      if (showMap && activeLocation === 'start' && vectorSourceRef.current) {
-        const lon = index === 0 ? newValue : mapMarkers.start?.longitude;
-        const lat = index === 1 ? newValue : mapMarkers.start?.latitude;
-        if (lon && lat) {
-          updateMarker(lon, lat, 'start');
-        }
-      }
-    } else if (type === 'endCoordinates') {
-      setMapMarkers(prev => ({
-        ...prev,
-        end: {
-          longitude: index === 0 ? newValue : prev.end?.longitude,
-          latitude: index === 1 ? newValue : prev.end?.latitude
-        }
-      }));
-
-      if (showMap && activeLocation === 'end' && vectorSourceRef.current) {
-        const lon = index === 0 ? newValue : mapMarkers.end?.longitude;
-        const lat = index === 1 ? newValue : mapMarkers.end?.latitude;
-        if (lon && lat) {
-          updateMarker(lon, lat, 'end');
-        }
+    if (newLng !== undefined && newLat !== undefined && !isNaN(newLng) && !isNaN(newLat)) {
+        if (showMap && mapInstanceRef.current) { 
+            const locationType = type === 'startCoordinates' ? 'start' : 'end';
+            updateMarker(newLng, newLat, locationType);
+            mapInstanceRef.current.flyTo({ center: [newLng, newLat], zoom: 13 });
       }
     }
   };
+  */
 
   // Open map for selecting a location
   const openMapSelector = (locationType) => {
     setActiveLocation(locationType);
     setShowMap(true);
 
-    // If we already have coordinates for this location type, center the map there
+    // Attempt to get current location and center map there first
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { longitude, latitude } = position.coords;
+          setViewState({
+            longitude,
+            latitude,
+            zoom: 14 // Desired zoom level for current location
+          });
+          // If a marker for this type already exists, and it's different from current location,
+          // it will be added/updated by the map initialization/update logic anyway.
+          // The map will flyTo this new viewState.
+        },
+        (err) => {
+          console.warn(`Error getting geolocation: ${err.message}. Falling back to default/marker location.`);
+          // Fallback to existing marker or default view if geolocation fails
+          if (locationType === 'start' && mapMarkers.start) {
+            setViewState({
+              longitude: mapMarkers.start.longitude,
+              latitude: mapMarkers.start.latitude,
+              zoom: 13
+            });
+          } else if (locationType === 'end' && mapMarkers.end) {
+            setViewState({
+              longitude: mapMarkers.end.longitude,
+              latitude: mapMarkers.end.latitude,
+              zoom: 13
+            });
+          } else {
+            // Default to India if no markers and no geolocation
+            setViewState({
+              longitude: 78.9629, 
+              latitude: 20.5937,
+              zoom: 4
+            });
+          }
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    } else {
+      console.warn('Geolocation not supported. Falling back to default/marker location.');
+      // Fallback logic if geolocation API is not supported at all
     if (locationType === 'start' && mapMarkers.start) {
       setViewState({
         longitude: mapMarkers.start.longitude,
@@ -354,44 +341,37 @@ const TripForm = () => {
         latitude: mapMarkers.end.latitude,
         zoom: 13
       });
+      } else {
+        setViewState({
+          longitude: 78.9629, 
+          latitude: 20.5937,
+          zoom: 4
+        });
+      }
     }
   };
 
-  // Get current location using browser's geolocation API
+  // Get current location using browser's geolocation API - Replaced by GeolocateControl
   const getCurrentLocation = () => {
+    // This button can now trigger the GeolocateControl if needed, 
+    // or simply inform user to use the map's own geolocate button.
+    // For now, we keep it, but its primary function is superseded by mapboxgl.GeolocateControl
     if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your browser');
+      alert('Geolocation is not supported by your browser. Please use the maps location button.');
+      return;
+    }
+    if(!activeLocation) {
+      alert('Please first specify if you are selecting a start or end location.');
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-
-        // Update map view
-        setViewState({
-          longitude: lng,
-          latitude: lat,
-          zoom: 15
-        });
-
-        // Update marker
-        if (activeLocation) {
-          updateMarker(lng, lat, activeLocation);
-
-          // Update form data and state
-          handleMapClick({
-            lngLat: { lng, lat }
-          });
-        }
-      },
-      (error) => {
-        console.error('Error getting location:', error);
-        alert(`Error getting your location: ${error.message}`);
-      },
-      { enableHighAccuracy: true }
-    );
+    alert("Please use the 'My Location' button directly on the map (top-right corner).");
+    // The GeolocateControl handles this now.
+    // If you want this button to programmatically trigger geolocate:
+    // const geolocateControl = mapInstanceRef.current._controls.find(ctrl => ctrl instanceof mapboxgl.GeolocateControl);
+    // if (geolocateControl) {
+    //   geolocateControl.trigger();
+    // }
   };
 
   // Close map and confirm location selection
@@ -399,78 +379,34 @@ const TripForm = () => {
     setShowMap(false);
   };
 
-  // Reverse geocoding (coordinates to address)
+  // Reverse geocoding (coordinates to address) using Mapbox API
   const reverseGeocode = async (lng, lat, addressField) => {
     try {
-      // Show loading state
-      setFormData(prev => ({
-        ...prev,
-        [addressField]: 'Fetching address...'
-      }));
+      setFormData(prev => ({ ...prev, [addressField]: 'Fetching address...' }));
 
-      // Use OpenStreetMap's Nominatim API to get address from coordinates
       const response = await axios.get(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`,
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&types=address,poi,place,locality,region,country`,
         {
           headers: {
             'Accept-Language': 'en',
-            'User-Agent': 'TruckDost-App' // It's good practice to identify your app
           }
         }
       );
 
-      if (response.data && response.data.display_name) {
-        // Format the address nicely
-        const addressData = response.data.address;
-        let formattedAddress = '';
-
-        // Create a descriptive address with nearby landmarks if available
-        if (addressData.road || addressData.amenity || addressData.building) {
-          formattedAddress += (addressData.road || addressData.amenity || addressData.building) + ', ';
-        }
-
-        if (addressData.suburb || addressData.neighbourhood) {
-          formattedAddress += (addressData.suburb || addressData.neighbourhood) + ', ';
-        }
-
-        if (addressData.city || addressData.town || addressData.village) {
-          formattedAddress += (addressData.city || addressData.town || addressData.village) + ', ';
-        }
-
-        if (addressData.state) {
-          formattedAddress += addressData.state;
-        }
-
-        if (addressData.postcode) {
-          formattedAddress += ' - ' + addressData.postcode;
-        }
-
-        // If formatted address is empty or too short, fall back to display_name
-        if (formattedAddress.length < 10) {
-          formattedAddress = response.data.display_name;
-        }
-
-        setFormData(prev => ({
-          ...prev,
-          [addressField]: formattedAddress
-        }));
-
-        console.log('Address found:', formattedAddress);
+      if (response.data && response.data.features && response.data.features.length > 0) {
+        const placeName = response.data.features[0].place_name;
+        setFormData(prev => ({ ...prev, [addressField]: placeName }));
+        console.log('Address found:', placeName);
       } else {
-        // Fallback to coordinate-based address if no result
-        setFormData(prev => ({
-          ...prev,
-          [addressField]: `Location at [${lng.toFixed(6)}, ${lat.toFixed(6)}]`
-        }));
-
+        setFormData(prev => ({ ...prev, [addressField]: `Location at [${lng.toFixed(6)}, ${lat.toFixed(6)}]` }));
         console.warn('No address found for coordinates:', lng, lat);
       }
     } catch (err) {
       console.error('Error in reverse geocoding:', err);
-      setFormData(prev => ({
-        ...prev,
-        [addressField]: `Location at [${lng.toFixed(6)}, ${lat.toFixed(6)}]`
-      }));
+      setFormData(prev => ({ ...prev, [addressField]: `Location at [${lng.toFixed(6)}, ${lat.toFixed(6)}]` }));
+       if (err.response && err.response.status === 401) {
+        alert("Failed to fetch address: Invalid Mapbox Access Token. Please check your REACT_APP_MAPBOX_TOKEN environment variable.");
+      }
     }
   };
 
@@ -568,18 +504,9 @@ const TripForm = () => {
           </div>
           <div className="map-container">
             <div
-              ref={mapRef}
+              ref={mapContainerRef}
               style={{ width: '100%', height: '400px' }}
             ></div>
-            <div className="map-controls">
-              <button
-                className="geolocate-btn"
-                onClick={getCurrentLocation}
-                title="Use your current location"
-              >
-                <span role="img" aria-label="Location">📍</span> My Location
-              </button>
-            </div>
           </div>
           <div className="map-actions">
             <p className="map-instruction">Click on the map to select a location</p>
@@ -595,16 +522,15 @@ const TripForm = () => {
 
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label htmlFor="startAddress">Starting Point (Address)</label>
-          <input
-            type="text"
-            id="startAddress"
-            name="startAddress"
-            value={formData.startAddress}
-            onChange={handleChange}
-            placeholder="Enter starting address"
-            required
-          />
+          <label htmlFor="startAddress">Starting Point</label>
+          <div className="map-selection">
+            <div className="address-display">
+              {formData.startAddress ? (
+                <div className="selected-address">{formData.startAddress}</div>
+              ) : (
+                <div className="no-address-selected">No starting point selected</div>
+              )}
+            </div>
           <button
             type="button"
             className="location-btn"
@@ -612,47 +538,19 @@ const TripForm = () => {
           >
             Select from Map
           </button>
-        </div>
-
-        <div className="form-group coordinates-group">
-          <label>Starting Coordinates</label>
-          <div className="coordinates-inputs">
-            <div className="coordinate-input">
-              <label htmlFor="startLongitude">Longitude</label>
-              <input
-                type="number"
-                id="startLongitude"
-                value={formData.startCoordinates[0]}
-                onChange={(e) => handleCoordinateChange(e, 'startCoordinates', 0)}
-                step="0.000001"
-                required
-              />
-            </div>
-            <div className="coordinate-input">
-              <label htmlFor="startLatitude">Latitude</label>
-              <input
-                type="number"
-                id="startLatitude"
-                value={formData.startCoordinates[1]}
-                onChange={(e) => handleCoordinateChange(e, 'startCoordinates', 1)}
-                step="0.000001"
-                required
-              />
-            </div>
           </div>
         </div>
 
         <div className="form-group">
-          <label htmlFor="endAddress">Destination (Address)</label>
-          <input
-            type="text"
-            id="endAddress"
-            name="endAddress"
-            value={formData.endAddress}
-            onChange={handleChange}
-            placeholder="Enter destination address"
-            required
-          />
+          <label htmlFor="endAddress">Destination</label>
+          <div className="map-selection">
+            <div className="address-display">
+              {formData.endAddress ? (
+                <div className="selected-address">{formData.endAddress}</div>
+              ) : (
+                <div className="no-address-selected">No destination selected</div>
+              )}
+            </div>
           <button
             type="button"
             className="location-btn"
@@ -660,33 +558,6 @@ const TripForm = () => {
           >
             Select from Map
           </button>
-        </div>
-
-        <div className="form-group coordinates-group">
-          <label>Destination Coordinates</label>
-          <div className="coordinates-inputs">
-            <div className="coordinate-input">
-              <label htmlFor="endLongitude">Longitude</label>
-              <input
-                type="number"
-                id="endLongitude"
-                value={formData.endCoordinates[0]}
-                onChange={(e) => handleCoordinateChange(e, 'endCoordinates', 0)}
-                step="0.000001"
-                required
-              />
-            </div>
-            <div className="coordinate-input">
-              <label htmlFor="endLatitude">Latitude</label>
-              <input
-                type="number"
-                id="endLatitude"
-                value={formData.endCoordinates[1]}
-                onChange={(e) => handleCoordinateChange(e, 'endCoordinates', 1)}
-                step="0.000001"
-                required
-              />
-            </div>
           </div>
         </div>
 
