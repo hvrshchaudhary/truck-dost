@@ -137,6 +137,11 @@
   color: #c62828;
 }
 
+.status-badge.completed {
+  background-color: #3b82f6; /* Blue-500 from Tailwind, a nice distinct blue */
+  color: white;
+}
+
 .proposal-trip-details {
   padding: 20px;
   border-bottom: 1px solid #eee;
@@ -318,6 +323,9 @@
 }
 .status-cancelled {
   background-color: #6b7280; /* Gray */
+}
+.status-completed {
+  background-color: #3b82f6; /* Blue-500 */
 }
 
 .proposal-details-content-grid {

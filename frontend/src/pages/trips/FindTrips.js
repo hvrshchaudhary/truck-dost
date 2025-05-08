@@ -461,7 +461,7 @@ const FindTrips = () => {
         driver: driverId,
         trip: tripId,
         price: offeredPrice,
-        message: message,
+          message: message,
       };
 
       await axios.post(

@@ -261,13 +261,13 @@ const TripProposals = () => {
                     </div>
 
                     <div className="proposal-card-actions">
-                      <button
+                        <button
                         onClick={() => handleViewProposalDetails(proposal._id)}
                         className={`details-btn ${proposal.status !== 'pending' ? 'view-details-btn' : ''}`}
                       >
                         {proposal.status === 'pending' ? 'Proposal Details' : 'View Details'}
-                      </button>
-                    </div>
+                        </button>
+                      </div>
                   </div>
                 ))}
               </div>

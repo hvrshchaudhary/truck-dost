@@ -153,6 +153,39 @@ router.get('/received', auth, async (req, res) => {
   }
 });
 
+// @route   GET api/proposals/:id
+// @desc    Get a single proposal by ID
+// @access  Private (Manufacturer who sent or Driver who received)
+router.get('/:id', auth, async (req, res) => {
+  try {
+    const proposal = await Proposal.findById(req.params.id)
+      .populate('trip') // Populates all fields from the Trip model
+      .populate('manufacturer', 'companyName email phone') // Select specific fields
+      .populate('driver', 'name email phone'); // Select specific fields for driver
+
+    if (!proposal) {
+      return res.status(404).json({ msg: 'Proposal not found' });
+    }
+
+    // Authorization check:
+    // User must be the manufacturer who created the proposal or the driver who received it.
+    const isManufacturer = proposal.manufacturer._id.toString() === req.user.id;
+    const isDriver = proposal.driver._id.toString() === req.user.id;
+
+    if (!isManufacturer && !isDriver) {
+      return res.status(403).json({ msg: 'User not authorized to view this proposal' });
+    }
+
+    res.json(proposal);
+  } catch (err) {
+    console.error('Error fetching proposal by ID:', err.message);
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ msg: 'Proposal not found (invalid ID format)' });
+    }
+    res.status(500).send('Server Error');
+  }
+});
+
 // @route   PUT api/proposals/:id
 // @desc    Update a proposal status (accept/reject)
 // @access  Private (Truck Drivers only)
@@ -209,6 +242,54 @@ router.put(
   }
 );
 
+// @route   PUT api/proposals/:id/complete
+// @desc    Mark a proposal as completed by the driver
+// @access  Private (Truck Drivers only)
+router.put('/:id/complete', auth, async (req, res) => {
+  try {
+    // Check if the user is a truck driver
+    const truckDriver = await TruckDriver.findById(req.user.id);
+    if (!truckDriver) {
+      return res.status(403).json({ msg: 'Only truck drivers can mark proposals as completed' });
+    }
+
+    // Find the proposal
+    let proposal = await Proposal.findById(req.params.id);
+    if (!proposal) {
+      return res.status(404).json({ msg: 'Proposal not found' });
+    }
+
+    // Make sure the truck driver is completing their own received proposal
+    if (proposal.driver.toString() !== req.user.id) {
+      return res.status(401).json({ msg: 'Not authorized to complete this proposal' });
+    }
+
+    // Ensure the proposal was accepted before completing
+    if (proposal.status !== 'accepted') {
+      return res.status(400).json({ msg: 'Only accepted proposals can be marked as completed' });
+    }
+
+    // Update the proposal status to 'completed'
+    proposal.status = 'completed';
+    await proposal.save();
+    
+    // Optionally, populate related fields in the response
+    // Re-fetch to get populated data if needed by frontend immediately
+    const updatedProposal = await Proposal.findById(req.params.id)
+      .populate('manufacturer', 'companyName email')
+      .populate('trip');
+
+    res.json({ msg: 'Proposal marked as completed successfully', proposal: updatedProposal });
+
+  } catch (err) {
+    console.error('Error marking proposal as completed:', err.message);
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ msg: 'Proposal not found' });
+    }
+    res.status(500).send('Server Error');
+  }
+});
+
 // @route   DELETE api/proposals/:id
 // @desc    Delete a proposal
 // @access  Private (Manufacturers and Truck Drivers)
@@ -259,9 +340,9 @@ router.delete('/:id', auth, async (req, res) => {
       if (proposal.driver.toString() !== req.user.id) {
         return res.status(401).json({ msg: 'Not authorized to delete this proposal' });
       }
-      // Truck drivers can only delete cancelled proposals
-      if (proposal.status !== 'cancelled') {
-        return res.status(400).json({ msg: 'Truck drivers can only delete cancelled proposals' });
+      // Truck drivers can delete cancelled or completed proposals
+      if (proposal.status !== 'cancelled' && proposal.status !== 'completed') {
+        return res.status(400).json({ msg: 'Truck drivers can only delete cancelled or completed proposals' });
       }
     }
 

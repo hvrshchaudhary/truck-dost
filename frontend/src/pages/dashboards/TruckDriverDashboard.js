@@ -436,12 +436,12 @@ function TruckDriverDashboard() {
                       <p><strong>Received:</strong> {formatDate(proposal.createdAt)}</p>
                     </div>
                     <div className="proposal-card-actions">
-                      <button
+                          <button
                         onClick={() => handleViewProposalDetails(proposal._id)}
                         className={`details-btn-dashboard ${proposal.status !== 'pending' ? 'view-details-btn-dashboard' : ''}`}
                       >
                         {proposal.status === 'pending' ? 'Proposal Details' : 'View Details'}
-                      </button>
+                        </button>
                     </div>
                   </div>
                 ))}
