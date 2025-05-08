@@ -123,45 +123,9 @@ const TripProposals = () => {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
-  // Handle proposal action (accept/reject)
-  const handleProposalAction = async (proposalId, status) => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-
-    try {
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      };
-
-      // Update proposal status
-      await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/proposals/${proposalId}`,
-        { status },
-        config
-      );
-
-      // Update proposals in state
-      setProposals(prevProposals =>
-        prevProposals.map(proposal =>
-          proposal._id === proposalId
-            ? { ...proposal, status }
-            : proposal
-        )
-      );
-
-      alert(`Proposal ${status} successfully!`);
-    } catch (err) {
-      console.error(`Error processing proposal:`, err);
-
-      // Simple error message without redundant details
-      alert(`Failed to process proposal. Please try again.`);
-    }
+  // Navigate to proposal details page
+  const handleViewProposalDetails = (proposalId) => {
+    navigate(`/proposal/${proposalId}/details`);
   };
 
   // Handle going back to dashboard
@@ -296,22 +260,14 @@ const TripProposals = () => {
                       </div>
                     </div>
 
-                    {proposal.status === 'pending' && (
-                      <div className="proposal-actions">
+                    <div className="proposal-card-actions">
                         <button
-                          onClick={() => handleProposalAction(proposal._id, 'accepted')}
-                          className="accept-btn"
-                        >
-                          Accept
-                        </button>
-                        <button
-                          onClick={() => handleProposalAction(proposal._id, 'rejected')}
-                          className="reject-btn"
-                        >
-                          Reject
+                        onClick={() => handleViewProposalDetails(proposal._id)}
+                        className={`details-btn ${proposal.status !== 'pending' ? 'view-details-btn' : ''}`}
+                      >
+                        {proposal.status === 'pending' ? 'Proposal Details' : 'View Details'}
                         </button>
                       </div>
-                    )}
                   </div>
                 ))}
               </div>

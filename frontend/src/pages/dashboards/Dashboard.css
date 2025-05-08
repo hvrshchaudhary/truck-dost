@@ -361,3 +361,93 @@ body {
     width: 100%;
   }
 }
+
+/* Styles for proposal cards on the Truck Driver Dashboard */
+.proposal-card-dashboard {
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem; /* Consistent with other cards */
+  padding: 1.5rem; /* Increased padding for better internal spacing */
+  margin-bottom: 1.5rem; /* Space between cards */
+  box-shadow: var(--shadow-md); /* More pronounced shadow for lift */
+  transition: all 0.2s ease-in-out;
+}
+
+.proposal-card-dashboard:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+.proposal-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.proposal-card-dashboard .proposal-card-header h4 {
+  margin: 0;
+  font-size: 1.1rem; /* Slightly adjusted for dashboard view */
+  font-weight: 600;
+  color: var(--text-primary);
+  flex-grow: 1;
+}
+
+.proposal-card-dashboard .status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+/* Specific status badge styling can be kept if already defined elsewhere or added here */
+
+.proposal-card-dashboard .proposal-card-body {
+  padding-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.proposal-card-dashboard .proposal-card-body p {
+  margin: 0.5rem 0;
+  color: var(--text-secondary);
+}
+
+.proposal-card-dashboard .proposal-card-body strong {
+  color: var(--text-primary);
+  margin-right: 0.5rem;
+}
+
+.proposal-card-dashboard .proposal-card-actions {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end; /* Align button to the right */
+}
+
+.details-btn-dashboard {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.details-btn-dashboard:hover {
+  background-color: var(--primary-hover);
+}
+
+.view-details-btn-dashboard {
+  background-color: var(--secondary-color);
+}
+
+.view-details-btn-dashboard:hover {
+  background-color: #525f71; /* Darker shade for secondary hover */
+}
